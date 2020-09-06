@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+{% extends "pdfscanner/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block body_block %}
+<div class="jumbotron">
+  {% if registered %}
+    <h1>Thank you for registering!</h1>
+  {% else %}
+  <div class="wrapper fadeInDown">
+    <div id="formContent">
+      <div class="fadeIn first">
+        <br>
+        <h1> Register Here</h1>
+        <br>
+        </div>
+
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="fadeIn second"> {{ user_form|crispy}}
+      <div style="margin:35px;"> {% crispy profile_form %} </div>
+      <input type="submit" class="btn btn-outline-primary" name="" value="Register">
+      </div>
+    </form>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

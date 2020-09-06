@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+{% extends "pdfscanner/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block body_block %}
+
+<div class="jumbotron">
+
+
+  <div class="wrapper fadeInDown">
+    <div id="formContent">
+
+      <div class="fadeIn first">
+        <h1>Login Here</h1>
+<!--        <img src="http://danielzawadzki.com/codepen/01/icon.svg" id="icon" alt="User Icon" />-->
+      </div>
+
+<!--  <h1>Login Here</h1>-->
+
+
+  <form action="login.html" method="POST">
+    {% csrf_token %}
+    <input type="text" id="login" class="fadeIn second" name="username" placeholder="Enter Username"><br>
+    <input type="password" id="password" class="fadeIn third" name="password" placeholder="password"><br>
+    <input type="submit" class="fadeIn fourth" value="Log In">
+  </form>
+
+    <div id="formFooter">
+      New User? <a class="underlineHover" href="register.html">Register</a>
+
+    </div>
+
+    </div>
+
+
+
+</div>
+{% endblock %}

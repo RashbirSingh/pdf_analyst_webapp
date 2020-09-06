@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+{% extends "pdfscanner/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block body_block %}
+
+  <div class="jumbotron">
+
+  <form id="upload" method="post" enctype="multipart/form-data" >
+    <h4> Import one or more PDFs </h4>
+    {% csrf_token %}
+    {{ form|crispy }}
+    <input type="submit" class="btn btn-outline-primary">
+    <input type="reset" class="btn btn-outline-primary">
+  </form>
+  <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+  <script>
+  $(document).ready(function() {
+  $('#example').DataTable();
+  } );
+  </script>
+{% endblock %}
+
+</div>
+

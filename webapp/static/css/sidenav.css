@@ -1,0 +1,93 @@
+.sidebar,.sidebartworesult {
+  height: 100%;
+  width: 0px;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #111;
+  overflow-x: hidden;
+  transition: 0.5s;
+  padding-top: 50px;
+}
+
+.sidebar a,.sidebartworesult a{
+padding-left:0px;
+  text-decoration: none;
+  font-size: 14px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+  text-align: left;
+}
+
+.sidebar a:hover, .sidebartworesult a:hover{
+  color: #f1f1f1;
+}
+
+.sidebar .closebtn, .sidebartworesult .closebtn{
+  position: absolute;
+  top: 0;
+  right: 20px;
+  font-size: 25px;
+  margin-left: 50px;
+}
+
+.openbtn {
+  font-size: 20px;
+  cursor: pointer;
+  background-color: #111;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+}
+
+.openbtn:hover {
+  background-color: #444;
+}
+
+
+/* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+@media screen and (max-height: 450px) {
+  .sidebar {padding-top: 15px;}
+  .sidebar a {font-size: 18px;}
+}
+
+@media screen and (max-height: 450px) {
+  .sidebartworesult {padding-top: 15px;}
+  .sidebartworesult a {font-size: 18px;}
+}
+
+
+#mySidenav a {
+    left: -40px;
+    padding-left:35px;
+    transition: 0.3s;
+    padding-right: 15px;
+    width: 100px;
+    text-decoration: none;
+    font-size: 40px;
+    color: white;
+    border-radius: 0 20px 20px 0;
+    position: fixed;
+}
+
+  #mySidenav a:hover{
+    left: 0;
+  }
+
+.btnn{
+padding: 0;
+border: none;
+background: none;
+}
+
+.container{
+  position:relative;
+}
+.element{
+  position:absolute;
+  top: 0; bottom: 0; left: 0; right: 0;
+  margin: auto;
+  height: 20px; /*requires explicit height*/
+}

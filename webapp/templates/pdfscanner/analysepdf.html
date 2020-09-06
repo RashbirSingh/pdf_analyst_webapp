@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+{% extends "pdfscanner/base.html" %}
+
+{% block body_block %}
+<div class="container">
+
+
+  <form method="post" enctype="multipart/form-data" action="">
+    {% csrf_token %}
+   <input type="file" name="document" multiple>
+   <input type="submit" value="upload" />
+
+  </form>
+
+  {% if url %}
+  <p> Uploaded File: <a href="{{ url }}"> {{ url }} </a>
+  </p>
+  {% endif %}
+
+</div>
+    {% endblock %}

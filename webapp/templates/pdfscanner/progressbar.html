@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+{% extends "pdfscanner/base.html" %}
+{% load static %}
+
+{% block body_block %}
+<br>
+    <div class='progress-wrapper'>
+        <div id='progress-bar' class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="background-color: #68a9ef; width: 0%;">&nbsp;</div>
+      </div>
+      <div id="progress-bar-message">Waiting for progress to start...</div>
+      <form action="analysisresult.html" method="POST" class="" enctype="multipart/form-data">
+          {% csrf_token %}
+      <input type="hidden" name="resulttask" value="{{ resulttask }}">
+      <button type="submit">clickme</button>
+      </form>
+
+    <a style="font-size:1px">{{ info }}</a>
+      <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
+      <script>
+
+
+      var progressUrl = "{% url 'celery_progress:task_status' task_id %}";
+      console.log(progressUrl)
+      function customResult(resultElement, result) {
+        $( resultElement ).append(
+           $('<p>').text('Sum of all seconds is ' + result)
+        );
+
+      }
+
+      CeleryProgressBar.initProgressBar(progressUrl, {
+            onResult: customResult,
+      })
+
+    </script>
+{% endblock %}

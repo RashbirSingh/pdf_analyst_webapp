@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+{% extends "pdfscanner/base.html" %}
+
+{% block body_block %}
+
+    <div class="jumbotron">
+      <h1 class="display-4">Settings info</h1>
+        {% for key, value in settingsdata.items %}
+      <p style="background-color: rgb({{value.0.0}},
+                                      {{value.0.1}},
+                                      {{value.0.2}});">{{ key }}</p>
+        {% endfor %}
+</div>
+
+
+{% endblock %}

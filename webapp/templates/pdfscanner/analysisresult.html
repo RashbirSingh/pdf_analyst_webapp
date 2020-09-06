@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+{% extends "pdfscanner/base.html" %}
+{% load crispy_forms_tags %}
+{% block body_block %}
+{% load static %}
+
+<!--Setting in the result page-->
+<div id="mySidebartworesult" class="sidebartworesult">
+  <a href="javascript:void(0)" class="closebtn" style="padding-top: 80px;" onclick="closeNavtworesult()">&#9747;</a>
+    <a href="#" style="padding-top: 80px;"> </a>
+          <hr style="border-top: 1px dotted #8c8b8b;">
+      <table class="table" style="font-size: 14px; text-align:center;">
+        <thead class="thead-dark">
+        <tr>
+          <th scope="col"> Parameter </th>
+          <th scope="col"> Selection </th>
+        </tr>
+        </thead>
+
+        {% for document in documentslist %}
+      <form action="analysedocument.html" method="POST" class="" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="doc" value={{document}}>
+          {% endfor %}
+          <tbody>
+          <tr>
+              <td><a href="#">Filter valid name</a></td>
+              <td><input type="checkbox" name="filtername"></td>
+          </tr>
+          <input type="hidden" name="sortdata" checked>
+          <tr>
+              <td><a href="#">Remove overlapping</a></td>
+              <td><input type="checkbox" name="overlap" onclick="terms_changed(this)"></td>
+          </tr>
+          </tbody>
+      </table>
+
+
+    <hr style="border-top: 1px dotted #8c8b8b;">
+      <table class="table" style="font-size: 14px; text-align:center;">
+        <thead class="thead-dark">
+        <tr>
+          <th scope="col"> Parameter type </th>
+          <th scope="col"> Priority </th>
+        </tr>
+        </thead>
+    {% for key in listofkeys %}
+    <tbody>
+          <tr>
+              <td><a href="#">{{key}}</a></td>
+              <td><select name="{{key}}" id="{{key}}">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+                  <option value="12">11</option>
+                  <option value="12">12</option></select>
+              </td>
+          </tr>
+    {% endfor %}
+          </tbody>
+      </table>
+        <button type="submit" class="btn btn-outline-info" style="width:346px; font-size:18px;"> Apply</button>
+        </form>
+</div>
+
+
+<!--Exporting the result toolbox-->
+<div id="mySidebar" class="sidebar" style="width: 350px;">
+  <a href="javascript:void(0)" class="closebtn" style="padding-top: 80px;" onclick="closeNav()">&#9747;</a>
+
+
+<!--  exportdetailstoexcel  -->
+  <a href="#" style="padding-top: 80px;">
+          <hr style="border-top: 1px dotted #8c8b8b;">
+      {% for document in documentslist %}
+      <form action="exportdetailstoexcel" method="POST" class="" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="doc" value={{document}}>
+          {% endfor %}
+          <button type="submit" class="btn btn-outline-info" onclick="alert('This will export the detailed analysis of document into a Excel file');" style="width:346px; font-size:18px;" >Export Detailed Analysis</button>
+      </form>
+  </a>
+
+<!--  exporttopdf  -->
+    <a href="#" style="margin-top:5px">
+        {% for document in documentslist %}
+        <form action="exporttopdf" method="POST" class="" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="doc" value={{document}}>
+            {% endfor %}
+            <button type="submit"  class="btn btn-outline-info"
+                    onclick="alert('We are going to export the highlighted pdf');"
+                    style="width:346px; font-size:18px;">Export Highlighted PDF(s)</button>
+        </form>
+    </a>
+
+<!--  exportdicttoexceluvo  -->
+  <a href="#" style="margin-top:5px">
+            {% for document in documentslist %}
+    <form action="exportdicttoexceluvo" method="POST" class="" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="doc" value={{document}}>
+      {% endfor %}
+    <button type="submit"  class="btn btn-outline-info"
+            onclick="alert('We are going to export a summary report of the analysed document(s)');"
+            style="width:346px; font-size:18px;">Export Summary Analysis</button>
+    </form>
+  </a>
+    <hr style="border-top: 1px dotted #8c8b8b;">
+
+<!--  deletehighlights  -->
+    <a href="#" style="margin-top:5px">
+              {% for document in documentslist %}
+    <form action="deletehighlights" method="POST" class="" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="doc" value={{document}}>
+      {% endfor %}
+    <button type="submit"  class="btn btn-outline-info"
+            onclick="alert('We are going to remove the highlights from the PDF(s)');"
+            style="width:346px; font-size:18px;">Remove Highlight</button>
+    </form>
+    </a>
+
+<!--  extracthighlights  -->
+    <a href="#" style="margin-top:5px">
+        {% for document in documentslist %}
+        <form action="extracthighlights" method="POST" class="" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="doc" value={{document}}>
+            {% endfor %}
+            <button type="submit" class="btn btn-outline-info"
+                    onclick="alert('The available highlights are going to be analysed and categories.Resulted file will be exported to excel format');"
+                    style="width:346px; font-size:18px;">Export available Highlight</button>
+        </form>
+    </a>
+    <hr style="border-top: 1px dotted #8c8b8b;">
+<!--  expand or unexpand all  -->
+
+</div>
+
+
+<!--Main content-->
+  <div class="jumbotron" id="main" style="margin-left:180px">
+
+      <!-- Toolbox -->
+      <div id="mySidenav" class="sidenav">
+          <a href="#" id="about" class="openbtn" onclick="openNav()" style="font-size:20px;
+                                                                            padding-left:45px;
+                                                                            background-color: #a5a8b4;
+                                                                            top: 120px;">
+              <img class="zoom" title="Export the analysis" src="/static/icons/toolbox.png" style="width:48px;height:48px;"/>
+          </a>
+      </div>
+
+      <!--  Settings -->
+      <div id="mySidenav" class="sidenav">
+      <a href="#" class="openbtn" onclick="openNavtworesult()" style="font-size:20px;
+                                                                            padding-left:45px;
+                                                                            background-color: #A8B4A5;
+                                                                            top: 200px;">
+        <img class="zoom" title="Edit the settings" src="/static/icons/gear.png" style="width:48px;height:48px;">
+      </a>
+      </div>
+
+
+      <div id="mySidenav" class="sidenav" style="">
+      <a href="#" class="openbtn clickme" style="left:auto;
+                                                 right: -40px;
+                                                 font-size:20px;
+                                                 padding-right:100px;
+                                                 border-radius: 20px 0 0 20px;
+                                                 background-color: #D6CBB0;
+                                                 top: 120px;">
+              <img class="zoom" title="Expand or Unexpand tree" src="/static/icons/expand.png" style="width:48px;height:48px;">
+      </a>
+      </div>
+
+      <!-- Analysis result tree view -->
+      <h4 style="align:center;"> Analysis Result </h4>
+      <br>
+      <table style="width:785px; margin-left:82px; position: fixed; top: 175px;" class="table table-striped table-hover  table-sm table-bordered" id="floating_header_in_result">
+      <thead class="thead-dark" style="font-size:12px; width:100%;">
+        <tr>
+          <th scope="col" width="18%">File Name</th>
+          <th scope="col" width="5%">Page</th>
+          <th scope="col" width="4%">Sentence</th>
+          <th scope="col" width="73%">Context</th>
+        </tr>
+      </thead>
+      </table>
+      {% for k, v in resultdict.items %}
+      <ul id="myUL">
+      <li><span class="caret">{{ k }}</span>
+        <ul class="nested firstlist">
+          {% for i, j in v.items %}
+
+            <li><span class="caret" onclick="showhidetableelement()"> {{ i }}</span>
+                <ul style="display:none;">
+                    <table style="width:100%" class="table table-striped table-hover  table-sm table-bordered">
+<!--                        <thead class="thead-dark" style="font-size:12px; width:100%;">-->
+<!--                            <tr>-->
+<!--                              <th scope="col" width="10%">File Name</th>-->
+<!--                              <th scope="col" width="5%">Page</th>-->
+<!--                              <th scope="col" width="5%">Sentence</th>-->
+<!--                              <th scope="col" width="80%">Context</th>-->
+<!--                            </tr>-->
+<!--                        </thead>-->
+                        {% for data in j %}
+                        <tr>
+                            <td style="font-size:12px;"
+                                title="Open the document in new tab"
+                                width="10%"
+                                onclick="window.open('media/documents/highlight/{{data.0}}')">
+                                {{ data.0 }}
+                            </td>
+                            <td style="font-size:12px;"
+                                title="open the {{ data.0 }} at page number {{ data.1 }}"
+                                width="5%"%
+                                onclick="window.open('media/documents/highlight/{{data.0}}#page={{data.1}}')">
+                                {{ data.1 }}
+                            </td>
+                            <td style="font-size:12px;"
+                                title="Click to see the {{ i }} in document"
+                                width="5%" onclick="text.html">
+                                <a href="highlightreview?filepath=media/documents/{{ data.0 }}&page={{ data.1 }}&word={{ i }} " target="_blank">{{ data.2 }}</a></td>
+                            <td style="font-size:12px;" width="80%">{{ data.3 }}</td>
+                        </tr>
+                        {% endfor %}
+              </table>
+            </ul>
+          {% endfor %}
+          </li>
+
+        </ul>
+      </li>
+    </ul>
+{% endfor %}
+</div>
+
+<script>
+
+    function updateinformation(update) {
+  document.getElementById("informationupdate").innerHTML = "Testing";
+}
+
+</script>
+{% endblock %}
+
+
