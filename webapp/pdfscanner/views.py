@@ -189,74 +189,9 @@ def user_logout(request):
     return HttpResponseRedirect('index')
 
 
-# TODO: add HIGHLIGHT, KEY_POINT, PHONE, POSITIVE_POINT, REDACTED
+
 @login_required
 def documentsview(request):
-    prioritydict = {}
-    datekeeper = {}
-    highlightStyleDict = {'addresshighlightstyle': 'ADDRESS',
-                          'barhighlightstyle': 'BARCODE',
-                          'caselawhighlightstyle': 'CASELAW',
-                          'datehighlightstyle': 'DATE',
-                          'emailhighlightstyle': 'EMAIL',
-                          'lawhighlightstyle': 'LAW',
-                          'moneyhighlightstyle': 'MONEY',
-                          'negativepointhighlightstyle': 'NEGATIVE_POINT',
-                          'numhighlightstyle': 'NUMBER',
-                          'orghighlightstyle': 'ORG',
-                          'personhighlightstyle': 'PERSON',
-                          'quotehighlightstyle': 'QUOTE',
-                          'timehighlightstyle': 'TIME',
-                          'wordhighlightstyle': 'WORD'
-                          }
-
-    rangeDict = {'addressrange': 'ADDRESS',
-                 'barrange': 'BARCODE',
-                 'caselawrange': 'CASELAW',
-                 'daterange': 'DATE',
-                 'emailrange': 'EMAIL',
-                 'lawrange': 'LAW',
-                 'moneyrange': 'MONEY',
-                 'negativepointrange': 'NEGATIVE_POINT',
-                 'numrange': 'NUMBER',
-                 'orgrange': 'ORG',
-                 'personrange': 'PERSON',
-                 'quoterange': 'QUOTE',
-                 'timerange': 'TIME',
-                 'wordrange': 'WORD'
-                 }
-
-    checkDict = {'addresscheck': 'ADDRESS',
-                 'barcheck': 'BARCODE',
-                 'caselawcheck': 'CASELAW',
-                 'datecheck': 'DATE',
-                 'emailcheck': 'EMAIL',
-                 'lawcheck': 'LAW',
-                 'moneycheck': 'MONEY',
-                 'negativepointcheck': 'NEGATIVE_POINT',
-                 'numcheck': 'NUMBER',
-                 'orgcheck': 'ORG',
-                 'personcheck': 'PERSON',
-                 'quotecheck': 'QUOTE',
-                 'timecheck': 'TIME',
-                 'wordcheck': 'WORD'
-                 }
-
-    colorDict = {'addresscolor': ['ADDRESS', 'customaddresscolor'],
-                 'barcolor': ['BARCODE', 'custombarcolor'],
-                 'caselawcolor': ['CASELAW', 'customcaselawcolor'],
-                 'datecolor': ['DATE', 'customdatecolor'],
-                 'emailcolor': ['EMAIL', 'customemailcolor'],
-                 'lawcolor': ['LAW', 'customlawcolor'],
-                 'moneycolor': ['MONEY', 'custommoneycolor'],
-                 'negativepointcolor': ['NEGATIVE_POINT', 'customnegativepointcolor'],
-                 'numcolor': ['NUMBER', 'customnumcolor'],
-                 'orgcolor': ['ORG', 'customorgcolor'],
-                 'personcolor': ['PERSON', 'custompersoncolor'],
-                 'quotecolor': ['QUOTE', 'customquotecolor'],
-                 'timecolor': ['TIME', 'customtimecolor'],
-                 'wordcolor': ['WORD', 'customwordcolor']
-                 }
 
     def checkboxcheck(value):
         if value == 'on':
@@ -265,40 +200,7 @@ def documentsview(request):
             return 0
 
     if request.method == 'POST':
-        for colorelement in colorDict.keys():
-            if colorelement in request.POST.dict():
-                if request.POST.getlist(colorelement)[0] == "Custom":
-                    hex = request.POST.getlist(colorDict[colorelement][1])[0]
-                    gui.InvColorDictLabelstoColors[colorDict[colorelement][0]][0] = ImageColor.getcolor(hex, 'RGB')
-                else:
-                    try:
-                        gui.InvColorDictLabelstoColors[colorDict[colorelement][0]][0] = \
-                        HiColors.ColorDict[(request.POST.getlist(colorelement)[0])][0]
-                    except: pass
 
-        for highlightelement in highlightStyleDict.keys():
-            if highlightelement in request.POST.dict():
-                try:
-                    gui.InvColorDictLabelstoColors[highlightStyleDict[highlightelement]][1] = \
-                    request.POST.getlist(highlightelement)[0]
-                except: pass
-
-        for rangeelement in rangeDict.keys():
-            if rangeelement in request.POST.dict():
-                try:
-                    gui.InvColorDictLabelstoColors[rangeDict[rangeelement]][2] = request.POST.getlist(rangeelement)[0]
-                except: pass
-
-        for checkelement in checkDict.keys():
-            if checkelement in request.POST.dict():
-                try:
-                    gui.InvColorDictLabelstoColors[checkDict[checkelement]][3] = checkboxcheck(
-                        request.POST.getlist(checkelement)[0])
-                except: pass
-            else:
-                try:
-                    gui.InvColorDictLabelstoColors[checkDict[checkelement]][3] = 0
-                except: pass
 
         ## check if user want highligh overlapping
         overlap = request.POST.getlist('overlap')
@@ -321,56 +223,7 @@ def documentsview(request):
         # else:
         #     sortdata = 0
 
-        ## Getting key priority value
-        try:
-            prioritydict['ADDRESS'] = int(request.POST.getlist('ADDRESS')[0])
-        except:
-            pass
-        try:
-            prioritydict['BARCODE'] = int(request.POST.getlist('BARCODE')[0])
-        except:
-            pass
-        try:
-            prioritydict['CASELAW'] = int(request.POST.getlist('CASELAW')[0])
-        except:
-            pass
-        try:
-            prioritydict['DATE'] = int(request.POST.getlist('DATE')[0])
-        except:
-            pass
-        try:
-            prioritydict['LAW'] = int(request.POST.getlist('LAW')[0])
-        except:
-            pass
-        try:
-            prioritydict['MONEY'] = int(request.POST.getlist('MONEY')[0])
-        except:
-            pass
-        try:
-            prioritydict['NUMBER'] = int(request.POST.getlist('NUMBER')[0])
-        except:
-            pass
-        try:
-            prioritydict['ORG'] = int(request.POST.getlist('ORG')[0])
-        except:
-            pass
-        try:
-            prioritydict['PERSON'] = int(request.POST.getlist('PERSON')[0])
-        except:
-            pass
-        try:
-            prioritydict['QUOTE'] = int(request.POST.getlist('QUOTE')[0])
-        except:
-            pass
-        try:
-            prioritydict['TIME'] = int(request.POST.getlist('TIME')[0])
-        except:
-            pass
-        try:
-            prioritydict['WORD'] = int(request.POST.getlist('WORD')[0])
-        except:
-            pass
-        request.session['prioritydict'] = prioritydict  ## Storing the priority list into the request session
+        prioritydict = request.session['prioritydict']  ## Storing the priority list into the request session
 
         if 'view_settings' in request.POST:
 
@@ -393,30 +246,6 @@ def documentsview(request):
 
             return render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "viewsettings.html"),
                           {'settingsdata': data})
-
-        # ######## USER WANTS TO SAVE SETTINGS
-        if 'save_settings' in request.POST:
-            save_as = request.POST.getlist('save_settings_as')[0]
-            if len(save_as) < 1:
-                save_as = 'default'
-            path = settings.MEDIA_DIR + "/usersettings/" + str(request.user) + "_" + save_as + ".json"
-            try:
-                os.remove(path)
-            except:
-                pass
-
-            with open(path, 'w') as fp:
-                json.dump(gui.InvColorDictLabelstoColors, fp)
-
-            response = HttpResponse(open(path, 'rb'), content_type='application/json')
-            response['Content-Disposition'] = 'attachment; filename=' + save_as + '.json'
-            form = usersettingsform()
-            obj = form.save(commit=False)
-            obj.user = request.user
-            obj.setting_field = "/usersettings/" + str(request.user) + "_" + save_as + ".json"
-            obj.save()
-
-            return response
 
         if 'usersettings' in request.POST:
             with open((settings.MEDIA_DIR + request.POST.getlist('usersettings')[0]).strip()) as fp:
@@ -705,6 +534,209 @@ def highlightreview(request):
         response['Content-Disposition'] = 'filename=some_file.pdf'
         return response
 
+def settingspage(request):
+    prioritydict = {}
+    highlightStyleDict = {'addresshighlightstyle': 'ADDRESS',
+                          'barhighlightstyle': 'BARCODE',
+                          'caselawhighlightstyle': 'CASELAW',
+                          'citationhighlightstyle': 'CITATION',
+                          'courthighlightstyle': 'COURT',
+                          'datehighlightstyle': 'DATE',
+                          'emailhighlightstyle': 'EMAIL',
+                          'instrumenthighlightstyle': 'INSTRUMENT',
+                          'judgehighlightstyle': 'JUDGE',
+                          'keypointhighlightstyle': 'KEY_POINT',
+                          'lawhighlightstyle': 'LAW',
+                          'moneyhighlightstyle': 'MONEY',
+                          'negativepointhighlightstyle': 'NEGATIVE_POINT',
+                          'numhighlightstyle': 'NUMBER',
+                          'orghighlightstyle': 'ORG',
+                          'personhighlightstyle': 'PERSON',
+                          'positivepointprior': 'POSITIVE_POINT',
+                          'provisionprior': 'PROVISION',
+                          'quotehighlightstyle': 'QUOTE',
+                          'redactedprior': 'REDACTED',
+                          'timehighlightstyle': 'TIME',
+                          'wordhighlightstyle': 'WORD'
+                          }
+
+    rangeDict = {'addressrange': 'ADDRESS',
+                 'barrange': 'BARCODE',
+                 'caselawrange': 'CASELAW',
+                 'citationrange': 'CITATION',
+                 'courtrange': 'COURT',
+                 'daterange': 'DATE',
+                 'emailrange': 'EMAIL',
+                 'instrumentrange': 'INSTRUMENT',
+                 'judgerange': 'JUDGE',
+                 'keypointrange': 'KEY_POINT',
+                 'lawrange': 'LAW',
+                 'moneyrange': 'MONEY',
+                 'negativepointrange': 'NEGATIVE_POINT',
+                 'numrange': 'NUMBER',
+                 'orgrange': 'ORG',
+                 'personrange': 'PERSON',
+                 'phonerange': 'PHONE',
+                 'positivepointrange': 'POSITIVE_POINT',
+                 'provisionrange': 'PROVISION',
+                 'quoterange': 'QUOTE',
+                 'redactedrange': 'REDACTED',
+                 'timerange': 'TIME',
+                 'wordrange': 'WORD'
+                 }
+
+    checkDict = {'addresscheck': 'ADDRESS',
+                 'barcheck': 'BARCODE',
+                 'caselawcheck': 'CASELAW',
+                 'citationcheck': 'CITATION',
+                 'courtcheck': 'COURT',
+                 'datecheck': 'DATE',
+                 'emailcheck': 'EMAIL',
+                 'instrumentcheck': 'INSTRUMENT',
+                 'judgecheck': 'JUDGE',
+                 'keypointcheck': 'KEY_POINT',
+                 'lawcheck': 'LAW',
+                 'moneycheck': 'MONEY',
+                 'negativepointcheck': 'NEGATIVE_POINT',
+                 'numcheck': 'NUMBER',
+                 'orgcheck': 'ORG',
+                 'personcheck': 'PERSON',
+                 'phonecheck': 'PHONE',
+                 'positivepointcheck': 'POSITIVE_POINT',
+                 'provisioncheck': 'PROVISION',
+                 'quotecheck': 'QUOTE',
+                 'redactedcheck': 'REDACTED',
+                 'timecheck': 'TIME',
+                 'wordcheck': 'WORD'
+                 }
+
+    colorDict = {'addresscolor': ['ADDRESS', 'customaddresscolor'],
+                 'barcolor': ['BARCODE', 'custombarcolor'],
+                 'caselawcolor': ['CASELAW', 'customcaselawcolor'],
+                 'citationcolor': ['CITATION', 'customcitationcolor'],
+                 'courtcolor': ['COURT', 'customcourtcolor'],
+                 'datecolor': ['DATE', 'customdatecolor'],
+                 'emailcolor': ['EMAIL', 'customemailcolor'],
+                 'instrumentcolor': ['INSTRUMENT', 'custominstrumentcolor'],
+                 'judgecolor': ['JUDGE', 'customjudgecolor'],
+                 'keypointcolor': ['KEY_POINT', 'customkeypointcolor'],
+                 'lawcolor': ['LAW', 'customlawcolor'],
+                 'moneycolor': ['MONEY', 'custommoneycolor'],
+                 'negativepointcolor': ['NEGATIVE_POINT', 'customnegativepointcolor'],
+                 'numcolor': ['NUMBER', 'customnumcolor'],
+                 'orgcolor': ['ORG', 'customorgcolor'],
+                 'personcolor': ['PERSON', 'custompersoncolor'],
+                 'phonecolor': ['PHONE', 'customphonecolor'],
+                 'positivepointcolor': ['POSITIVE_POINT', 'custompositivepointcolor'],
+                 'provisioncolor': ['PROVISION', 'customprovisioncolor'],
+                 'quotecolor': ['QUOTE', 'customquotecolor'],
+                 'redactedcolor': ['REDACTED', 'customredactedcolor'],
+                 'timecolor': ['TIME', 'customtimecolor'],
+                 'wordcolor': ['WORD', 'customwordcolor']
+                 }
+
+    def checkboxcheck(value):
+        if value == 'on':
+            return 1
+        else:
+            return 0
+
+    if request.method == 'POST':
+        # ######## USER WANTS TO SAVE SETTINGS
+        if 'save_settings' in request.POST:
+
+            for colorelement in colorDict.keys():
+                if colorelement in request.POST.dict():
+                    if request.POST.getlist(colorelement)[0] == "Custom":
+                        hex = request.POST.getlist(colorDict[colorelement][1])[0]
+                        gui.InvColorDictLabelstoColors[colorDict[colorelement][0]][0] = ImageColor.getcolor(hex, 'RGB')
+                    else:
+                        try:
+                            gui.InvColorDictLabelstoColors[colorDict[colorelement][0]][0] = \
+                                HiColors.ColorDict[(request.POST.getlist(colorelement)[0])][0]
+                        except:
+                            pass
+
+            for highlightelement in highlightStyleDict.keys():
+                if highlightelement in request.POST.dict():
+                    try:
+                        gui.InvColorDictLabelstoColors[highlightStyleDict[highlightelement]][1] = \
+                            request.POST.getlist(highlightelement)[0]
+                    except:
+                        pass
+
+            for rangeelement in rangeDict.keys():
+                if rangeelement in request.POST.dict():
+                    try:
+                        gui.InvColorDictLabelstoColors[rangeDict[rangeelement]][2] = request.POST.getlist(rangeelement)[
+                            0]
+                    except:
+                        pass
+
+            for checkelement in checkDict.keys():
+                if checkelement in request.POST.dict():
+                    try:
+                        gui.InvColorDictLabelstoColors[checkDict[checkelement]][3] = checkboxcheck(
+                            request.POST.getlist(checkelement)[0])
+                    except:
+                        pass
+                else:
+                    try:
+                        gui.InvColorDictLabelstoColors[checkDict[checkelement]][3] = 0
+                    except:
+                        pass
+
+            # ## Getting key priority value
+            prioritydict['ADDRESS'] = int(request.POST.getlist('addressprior')[0])
+            prioritydict['BARCODE'] = int(request.POST.getlist('barprior')[0])
+            prioritydict['CASELAW'] = int(request.POST.getlist('caselawprior')[0])
+            prioritydict['CITATION'] = int(request.POST.getlist('citationprior')[0])
+            prioritydict['COURT'] = int(request.POST.getlist('courtprior')[0])
+            prioritydict['DATE'] = int(request.POST.getlist('dateprior')[0])
+            prioritydict['EMAIL'] = int(request.POST.getlist('emailprior')[0])
+            prioritydict['INSTRUMENT'] = int(request.POST.getlist('instrumentprior')[0])
+            prioritydict['JUDGE'] = int(request.POST.getlist('judgeprior')[0])
+            prioritydict['KEY_POINT'] = int(request.POST.getlist('keypointprior')[0])
+            prioritydict['LAW'] = int(request.POST.getlist('lawprior')[0])
+            prioritydict['MONEY'] = int(request.POST.getlist('moneyprior')[0])
+            prioritydict['NEGATIVE_POINT'] = int(request.POST.getlist('negativepointprior')[0])
+            prioritydict['NUMBER'] = int(request.POST.getlist('numberprior')[0])
+            prioritydict['ORG'] = int(request.POST.getlist('orgprior')[0])
+            prioritydict['PERSON'] = int(request.POST.getlist('personprior')[0])
+            prioritydict['PHONE'] = int(request.POST.getlist('phoneprior')[0])
+            prioritydict['POSITIVE_POINT'] = int(request.POST.getlist('positivepointprior')[0])
+            prioritydict['PROVISION'] = int(request.POST.getlist('provisionprior')[0])
+            prioritydict['QUOTE'] = int(request.POST.getlist('quoteprior')[0])
+            prioritydict['REDACTED'] = int(request.POST.getlist('redactedprior')[0])
+            prioritydict['TIME'] = int(request.POST.getlist('timeprior')[0])
+            prioritydict['WORD'] = int(request.POST.getlist('wordprior')[0])
+
+            request.session['prioritydict'] = prioritydict  ## Storing the priority list into the request session
+
+
+            save_as = request.POST.getlist('save_settings_as')[0]
+            if len(save_as) < 1:
+                save_as = 'default'
+            path = settings.MEDIA_DIR + "/usersettings/" + str(request.user) + "_" + save_as + ".json"
+            try:
+                os.remove(path)
+            except:
+                pass
+
+            with open(path, 'w') as fp:
+                json.dump(gui.InvColorDictLabelstoColors, fp)
+
+            response = HttpResponse(open(path, 'rb'), content_type='application/json')
+            response['Content-Disposition'] = 'attachment; filename=' + save_as + '.json'
+            form = usersettingsform()
+            obj = form.save(commit=False)
+            obj.user = request.user
+            obj.setting_field = "/usersettings/" + str(request.user) + "_" + save_as + ".json"
+            obj.save()
+
+            return response
+
+    return render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "settingspage.html"))
 
 def test(request):
     results = {}

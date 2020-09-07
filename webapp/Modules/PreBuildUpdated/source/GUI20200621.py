@@ -60,160 +60,6 @@ checkVar = {}
 radioVar = {}
 
 
-class CustomizeHL(object):
-    ## Preferably, this would be a separat module
-
-    root = None
-
-    global InvColorDictLabelstoColors, pprint, ModesDict
-
-    def __init__(self, default):
-
-        self.top = Toplevel(CustomizeHL.root)
-
-        frm = Frame(self.top, borderwidth=4, relief='ridge')
-
-        self.createWidgets(False)
-
-        frm.title("pdfAnalyst - Customize highlights")
-
-    def createWidgets(self, default):
-
-        global InvColorDictLabelstoColors, ModesDict
-
-        buttonNames = list(d.keys())
-        buttonNames.append("DEFAULT")
-        buttonDic = {}
-        checkbuttonDic = {}
-        scaleDic = {}
-        radioDic = {}
-        buttonColors = {}
-        parent = self.top
-
-        def on_OK():
-            for i, key in enumerate(buttonNames[:-1]):
-                a = checkVar[key]
-                b = scaleDic[key]
-                c = radioVar[key]
-                InvColorDictLabelstoColors[key][3] = a.get()
-                InvColorDictLabelstoColors[key][2] = b.get()
-                InvColorDictLabelstoColors[key][1] = str(c.get())
-            self.top.destroy()
-
-        def on_save():
-            for i, key in enumerate(buttonNames[:-1]):
-                a = checkVar[key]
-                b = scaleDic[key]
-                c = radioVar[key]
-                InvColorDictLabelstoColors[key][3] = a.get()
-                InvColorDictLabelstoColors[key][2] = b.get()
-                InvColorDictLabelstoColors[key][1] = str(c.get())
-
-            with open('data.json', 'w') as fp:
-                json.dump(InvColorDictLabelstoColors, fp)
-
-        def on_load():
-            global InvColorDictLabelstoColors
-            with open('data.json', 'r') as f:
-                InvColorDictLabelstoColors = json.load(f)
-            ##            pprint(InvColorDictLabelstoColors)
-            self.createWidgets(False)
-
-        def hex_to_rgb(value):
-            value = value.lstrip('#')
-            lv = len(value)
-            return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
-
-        def rgb255_to_rgb1(tpl):
-            return (round(((tpl[0] + 1) / 256) - (1 / 256), 2), \
-                    round(((tpl[1] + 1) / 256) - (1 / 256), 2), round(((tpl[2] + 1) / 256) - (1 / 256), 2))
-
-        if default:
-            InvColorDictLabelstoColors = copy.deepcopy(defaultColorDict)
-
-        for key in d:
-
-            rgb = (int(InvColorDictLabelstoColors[key][0][0] * 255),
-                   int(InvColorDictLabelstoColors[key][0][1] * 255),
-                   int(InvColorDictLabelstoColors[key][0][2] * 255))
-            keycolor = f'#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}'
-            buttonColors[key] = StringVar()
-            buttonColors[key].set(keycolor)
-            buttonDic[key] = Button(
-                parent,
-                text=key,
-                width=20,
-                background=buttonColors[key].get(),
-                command=lambda passName=key: change_color(passName)
-            )
-
-            checkVar[key] = IntVar()
-            checkbuttonDic[key] = Checkbutton(parent, text="", variable=checkVar[key], onvalue=1, offvalue=0)
-            if InvColorDictLabelstoColors[key][3] == 1:
-                checkVar[key].set(1)
-            if checkVar[key] == 1: checkbuttonDic[key].select()
-
-            scaleDic[key] = Scale(parent, from_=0, to=1, resolution=0.01, orient=HORIZONTAL)
-            scaleDic[key].set(InvColorDictLabelstoColors[key][2])
-
-            radioVar[key] = StringVar()
-            radioVar[key].set(InvColorDictLabelstoColors[key][1])  # initialize
-            radioDic[key] = {}
-            for item in ModesDict:
-                radioDic[key][item] = Radiobutton(parent, text=item, variable=radioVar[key], value=ModesDict[item])
-
-        buttonDic["DEFAULT"] = Button(
-            parent,
-            text="RESTORE DEFAULTS",
-            width=20,
-            background="white",
-            command=lambda passName="DEFAULT": self.createWidgets(True)
-        )
-
-        parent.grid()
-        First = False
-
-        info_label0_0 = Label(parent, fg='red')
-        info_label0_0.grid(row=0, column=0, pady=0, sticky=N + E + W)
-        info_label0_0.config(text="Choose colors\nfor categories")
-        info_label0_1 = Label(parent, fg='red')
-        info_label0_1.grid(row=0, column=1, pady=0, sticky=N + E + W)
-        info_label0_1.config(text="Checked categories\nwill be highlighted")
-        info_label0_2 = Label(parent, fg='red')
-        info_label0_2.grid(row=0, column=2, pady=0, sticky=S)
-        info_label0_2.config(text="Adjust opacity")
-        info_label0_3 = Label(parent, fg='red')
-        info_label0_3.grid(row=0, column=3, columnspan=4, pady=0, sticky=S)
-        info_label0_3.config(text="Choose highlighting style")
-
-        i = 0
-        for i, key in enumerate(buttonNames[:-1]):
-            buttonDic[key].grid(row=i + 1, column=0)
-
-        for i, key in enumerate(buttonNames[:-1]):
-            checkbuttonDic[key].grid(row=i + 1, column=1, sticky=W + E)
-            scaleDic[key].grid(row=i + 1, column=2, sticky=W + E)
-            counter = 0
-            for item in ModesDict:
-                radioDic[key][item].grid(row=i + 1, column=3 + counter)
-                counter += 1
-        ##            InvColorDictLabelstoColors[key][3] = checkVar[key]
-
-        buttonDic["DEFAULT"].grid(row=i + 2, column=0, columnspan=7, sticky=W + E)
-
-        save_button = Button(parent, text="Save Settings")
-        save_button.grid(row=i + 3, column=0, columnspan=7, sticky=W + E)
-        save_button['command'] = on_save
-
-        load_button = Button(parent, text="Load Settings")
-        load_button.grid(row=i + 4, column=0, columnspan=7, sticky=W + E)
-        load_button['command'] = on_load
-
-        quit_button = Button(parent, text="OK")
-        quit_button.grid(row=i + 5, column=0, columnspan=7, sticky=W + E)
-        quit_button['command'] = on_OK
-
-
 
 def analyse_file(eff=None, listbox=object, listbox2=object, label=object, label2=object, label3=object, label4=object,
                  tree=object, root=object, scalePage=object, button=object, button2=object):
@@ -639,22 +485,23 @@ def analyse_file_webapp_shared_task(lst, overlap, prioritydict, task_id):
     #### to manage overlapping of highlights
     if overlap == 0: # If user do not want to overlap(Checkbox unticked)
         for com in itertools.combinations(prioritydict.keys(), 2):
-            for k in list(d[com[0]].keys()):
-                if k in list(d[com[1]].keys()):
-                    if prioritydict[com[0]] > prioritydict[com[1]]:
-                        try: d[com[0]].pop(k)
-                        except: pass
-                    elif prioritydict[com[0]] < prioritydict[com[1]]:
-                        try: d[com[1]].pop(k)
-                        except: pass
+            if com in d:
+                for k in list(d[com[0]].keys()):
+                    if k in list(d[com[1]].keys()):
+                        if prioritydict[com[0]] > prioritydict[com[1]]:
+                            try: d[com[0]].pop(k)
+                            except: pass
+                        elif prioritydict[com[0]] < prioritydict[com[1]]:
+                            try: d[com[1]].pop(k)
+                            except: pass
 
-                if k in list(d[com[0]].keys()):
-                    if prioritydict[com[0]] > prioritydict[com[1]]:
-                        try: d[com[0]].pop(k)
-                        except: pass
-                    elif prioritydict[com[0]] < prioritydict[com[1]]:
-                        try: d[com[1]].pop(k)
-                        except: pass
+                    if k in list(d[com[0]].keys()):
+                        if prioritydict[com[0]] > prioritydict[com[1]]:
+                            try: d[com[0]].pop(k)
+                            except: pass
+                        elif prioritydict[com[0]] < prioritydict[com[1]]:
+                            try: d[com[1]].pop(k)
+                            except: pass
 
     DocDict = results[tuple(lst)][1]
     DocDictList = results[tuple(lst)][2]

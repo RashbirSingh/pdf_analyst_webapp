@@ -46,6 +46,7 @@ urlpatterns = [
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
     path(r'celery-progress/', include('celery_progress.urls')),
     url(r'analysisresult.html', views.analysisresult, name='analysisresult'),
+    url(r'^settingspage$', views.settingspage, name='settingspage'),
     ## TODO look into this url creating error while migrating
     url(r'^(.*?)media/(?P<path>.*)$', django.views.static.serve,
         {'document_root': settings.MEDIA_ROOT}),

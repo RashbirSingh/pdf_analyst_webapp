@@ -41,6 +41,14 @@ ColorDict["PalePink"] = ((1,0.8,0.8), "NUMBER", "Highlight", 0.25, 1)
 ColorDict["Light_Purple"] = ((0.8,0.6,1), "QUOTE", "Highlight", 0.25, 1)
 ColorDict["LtYellow"] = ((1,1,0.6), "MONEY", "Highlight", 0.25, 1)
 
+ColorDict["Tan"] = ((0.82, 0.7, 0.54), "CASENAME", "Highlight", 0.25, 1)
+ColorDict["Dark_Green"] = ((0, 0.39, 0), "CITATION", "Highlight", 0.25, 1)
+ColorDict["Light_Salmon"] = ((1, 0.6, 0.47), "INSTRUMENT", "Highlight", 0.25, 1)
+ColorDict["Tomato"] = ((1, 0.3, 0.27), "PROVISION", "Highlight", 0.25, 1)
+ColorDict["Light_Coral"] = ((0.9, 0.5, 0.5), "COURT", "Highlight", 0.25, 1)
+ColorDict["Amethyst"] = ((0.6, 0.4, 0.8), "JUDGE", "Highlight", 0.25, 1)
+
+
 InvColorDictLabelstoColors = {}
 for item in ColorDict.items():
     InvColorDictLabelstoColors[item[1][1]] = [item[1][0], item[1][2], item[1][3], item[1][4]] 
