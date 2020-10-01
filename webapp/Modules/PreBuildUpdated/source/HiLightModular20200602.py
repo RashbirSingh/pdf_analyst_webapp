@@ -9,6 +9,7 @@ import xlsxwriter
 import datetime
 import dateparser
 import os
+import re
 from pprint import pprint
 
 #Need to update this to link to the correct colorsDict
@@ -31,7 +32,7 @@ nlp2 = spacy.load("en_core_web_sm")
 # nlp = en_core_web_sm.load()
 
 ## Preferences
-SpaCyList = ["ORG", "TIME", "PERSON", "LAW", "CASENAME", "CITATION", "INSTRUMENT", "PROVISION", "COURT", "MONEY", "JUDGE"]
+SpaCyList = ["ORG", "TIME", "PERSON", "LAW", "INSTRUMENT", "PROVISION", "COURT", "MONEY", "JUDGE"]
 DEFAULT_CULTURE = Culture.English
 LOCALES = ['en-AU']
 debug = False
@@ -90,6 +91,27 @@ def Highlight_Analyse(self, lst, ColorDict, savePDF, saveExcel, saveExcelUVO, la
         pdl2 = PDF2DictList2(input_pdf)
         pdl2[1].update(pdl[1])
         pdl2[0][0].update(pdl[0][0])
+        for k, v in list(pdl2[0][0].items()):
+            if (k == "INSTRUMENT") or (k == "PROVISION"):
+                if "LAW" in pdl2[0][0].keys():
+                    pdl2[0][0][re.sub("the ", "", [k])] = pdl2[0][0].pop(k)
+                    k = re.sub("the ", "", [k])
+                    pdl2[0][0]["LAW"].update(pdl2[0][0][k])
+                    pdl2[0][0].pop(k)
+                    for key, v in pdl2[0][0]["LAW"].items():
+                        pdl2[0][0]["LAW"][re.sub('the ', "", key.lower())] = pdl2[0][0]["LAW"].pop(key)
+                        print(pdl2[0][0]["LAW"][key])
+
+                else:
+                    pdl2[0][0]["LAW"] = pdl2[0][0][k]
+                    pdl2[0][0].pop(k)
+                    for key, v in pdl2[0][0]["LAW"].items():
+                        pdl2[0][0]["LAW"][re.sub('the ', "", key.lower())] = pdl2[0][0]["LAW"].pop(key)
+                        print(pdl2[0][0]["LAW"][key])
+            # if (k == "NUMBER"):
+            #     for Numberkey, Numbervalue in pdl2[0][0]["NUMBER"].items():
+            #         print(Numberkey)
+            #         pdl2[0][0]["NUMBER"][" " + Numberkey + " "] = pdl2[0][0]["NUMBER"].pop(Numberkey)
         DocDictList[input_pdf] = pdl2[0]
         textSentencesDict[input_pdf] = pdl2[1]
         DocDict[input_pdf] = MergeList2Dict(DocDictList[input_pdf], debug)
@@ -304,6 +326,9 @@ def markup(input_pdf, DocDictListInstance, ColorDict, debug):
 
             for k2 in value:
                 SearchText = k2
+                # TODO: Manage Number overlapping more accurately
+                if SearchText.isdigit():
+                    SearchText = " " + SearchText + " "
                 for lst in value[k2]:
 
                     if lst[1] == pageCounter:
@@ -311,7 +336,6 @@ def markup(input_pdf, DocDictListInstance, ColorDict, debug):
                         if ColorDict[key][3]: page=annotate(input_pdf, page, SearchText, key, "", ColorDict, debug)
 
         LineNumbers[input_pdf][page] = CompileListofLineNumbers(Y0, Y1, input_pdf, page)
-    if debug: print("286")
     return(doc)
 
 def setHI(annot, Color, opacity):
@@ -342,6 +366,7 @@ def annotate(file:str, page: object, SearchText: str, SearchType:str, sentence:s
     annotType = ColorDict[SearchType][1]
     opacity = ColorDict[SearchType][2]
     HighlightThis = ColorDict[SearchType][3]
+    # SearchText = " " + SearchText + " "
     areas = page.searchFor(SearchText, quads=False, hit_max = 32)
 ##TODO: investigate if Newareas is adding value (or even working)
     newareas = joinAreas(areas, debug)

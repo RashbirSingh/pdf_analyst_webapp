@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% extends "pdfscanner/base.html" %}
-
+{% load static %}
 
 {% block body_block %}
 
@@ -11,17 +11,17 @@
   <p>It uses utility classes for typography and spacing to space content out within the larger container.</p>
         <br><br>
 
-         <div class="row">
+  <div class="row">
 
          <div class="col-md-4 col-sm-6">
              <div class="card-container">
                 <div class="card">
                     <div class="front">
                         <div class="cover">
-                            <img src="images/rotating_card_thumb2.png"/>
+                            <img src="{% static 'icons/rotating_card_thumb2.png' %}"/>
                         </div>
                         <div class="user">
-                            <img class="img-circle" src="images/rotating_card_profile3.png"/>
+                            <img class="img-circle" src="{% static 'icons/person.png' %}"/>
                         </div>
                         <div class="content">
                             <div class="main">
@@ -84,10 +84,10 @@
                 <div class="card">
                     <div class="front">
                         <div class="cover">
-                            <img src="images/rotating_card_thumb3.png"/>
+                            <img src="{% static 'icons/rotating_card_thumb3.png' %}"/>
                         </div>
                         <div class="user">
-                            <img class="img-circle" src="images/rotating_card_profile.png"/>
+                            <img class="img-circle" src="{% static 'icons/person.png' %}"/>
                         </div>
                         <div class="content">
                             <div class="main">
@@ -153,10 +153,10 @@
                 <div class="card">
                     <div class="front">
                         <div class="cover">
-                            <img src="images/rotating_card_thumb3.png"/>
+                            <img src="{% static 'icons/rotating_card_thumb3.png' %}"/>
                         </div>
                         <div class="user">
-                            <img class="img-circle" src="images/rotating_card_profile.png"/>
+                            <img class="img-circle" src="{% static 'icons/person.png' %}"/>
                         </div>
                         <div class="content">
                             <div class="main">
@@ -215,8 +215,6 @@
                 </div> <!-- end card -->
             </div> <!-- end card-container -->
         </div> <!-- end col-sm-3 -->
-
-
 
     </div> <!-- end row -->
 

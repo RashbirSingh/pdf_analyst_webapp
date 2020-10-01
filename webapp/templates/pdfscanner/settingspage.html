@@ -1,32 +1,50 @@
 <!DOCTYPE html>
 {% extends "pdfscanner/base.html" %}
+{% load settingsname %}
 
 {% block body_block %}
 
+<header id="header">
+        <table class="table" style="font-size: 8px;
+                                    text-align:center;
+                                    width:864px;
+                                    position: fixed;
+                                    top: 100px;
+                                    width:72.5%;">
+        <thead class="thead-dark" style="font-size:9px; width:100%;">
+        <tr>
+          <th scope="col" width="33%"> Type </th>
+          <th scope="col" width="1%"> Keep </th>
+          <th onmouseover="infoP('Manage category opacity for highlighting')" onmouseout="HideinfoP()"
+              scope="col" width="23%"> Opacity </th>
+          <th onmouseover="infoP('Conventional highlighting')" onmouseout="HideinfoP()"
+              scope="col" width="0%"> Highlight </th>
+          <th onmouseover="infoP('Highlighting will be done by underlining the word')" onmouseout="HideinfoP()"
+              scope="col" width="0%"> Underline </th>
+          <th onmouseover="infoP('Highlighting will be done by putting a rectangle around the word')" onmouseout="HideinfoP()"
+              scope="col" width="0%"> Rectangle </th>
+          <th onmouseover="infoP('Highlighting will be done by using a Squiggly underlining under the word')" onmouseout="HideinfoP()"
+              scope="col" width="0%"> Squiggly</th>
+          <th onmouseover="infoP('Setting up the priority for the highlight')" onmouseout="HideinfoP()"
+              scope="col" width="0%"> Priority </th>
+          <th onmouseover="infoP('Select the color of the highlight for each category')" onmouseout="HideinfoP()"
+              scope="col" width="57%"> Color </th>
+        </tr>
+        </thead>
+        </table>
+    </header>
+<main>
     <div class="jumbotron">
         <form class="" action="settingspage" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-<table class="table" style="font-size: 14px; text-align:center;">
-        <thead class="thead-dark">
-        <tr>
-          <th scope="col"> Type </th>
-          <th scope="col"> Keep </th>
-          <th scope="col"> Opacity </th>
-          <th scope="col"> Highlight </th>
-          <th scope="col"> Underline </th>
-          <th scope="col"> Rectangle </th>
-          <th scope="col"> Squiggly underline </th>
-          <th scope="col"> Priority </th>
-          <th scope="col"> Color </th>
-        </tr>
-        </thead>
-        <tbody>
-
+    <table class="table" style="font-size: 14px; text-align:center;">
 <!-- ADDRESS -->
         <tr>
-          <td><a href="#">ADDRESS</a></td>
-          <td><input type="checkbox" name="addresscheck" id="addresscheck" checked></td>
-          <td><input type="range" name="addressrange" id="addressrange" min="0" max="1" step="0.05" value="0.25" ></td>
+          <td><a onmouseover="infoP('Selected category is ADDRESS')" onmouseout="HideinfoP()"
+                 href="#">ADDRESS</a></td>
+          <td><input onmouseover="infoP('Highlight ADDRESS in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="addresscheck" id="addresscheck" checked></td>
+          <td><input onmouseover="infoP('Highlight WORD in the analysis')" onmouseout="HideinfoP()"type="range" name="addressrange" id="addressrange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="addressHighlight" name="addresshighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="addressUnderline" name="addresshighlightstyle" value="Underline"></td>
           <td><input type="radio" id="addressRectangle" name="addresshighlightstyle" value="Rectangle"></td>
@@ -51,11 +69,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="addresscolor" id="addresscolor" onchange="updateCustomColor(this, 'customaddresscolor')">
             <option value="Grey">Grey</option>
@@ -85,8 +99,10 @@
 
 <!-- BARCODE -->
         <tr>
-          <td><a href="#">BARCODE</a></td>
-          <td><input type="checkbox" name="barcheck" id="barcheck" checked></td>
+          <td><a onmouseover="infoP('Selected category is BARCODE')" onmouseout="HideinfoP()"
+                    href="#">BARCODE</a></td>
+          <td><input onmouseover="infoP('Highlight ADDRESS in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="barcheck" id="barcheck" checked></td>
           <td><input type="range" name="barrange" id="barrange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="barHighlight" name="barhighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="barUnderline" name="barhighlightstyle" value="Underline"></td>
@@ -112,11 +128,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="barcolor" id="barcolor" onchange="updateCustomColor(this, 'custombarcolor')">
             <option value="Grey">Grey</option>
@@ -146,8 +158,10 @@
 
 <!-- CASELAW -->
         <tr>
-          <td><a href="#">CASELAW</a></td>
-          <td><input type="checkbox" name="caselawcheck" id="caselawcheck"checked></td>
+          <td><a onmouseover="infoP('Selected category is CASELAW')" onmouseout="HideinfoP()"
+                 href="#">CASELAW</a></td>
+          <td><input onmouseover="infoP('Highlight ADDRESS in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="caselawcheck" id="caselawcheck"checked></td>
           <td><input type="range" name="caselawrange" id="caselawrange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="caselawHighlight" name="caselawhighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="caselawUnderline" name="caselawhighlightstyle" value="Underline"></td>
@@ -173,11 +187,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="caselawcolor" id="caselawcolor" onchange="updateCustomColor(this, 'customcaselawcolor')">
             <option value="Grey">Grey</option>
@@ -205,72 +215,12 @@
           </td>
         </tr>
 
-<!-- CITATION -->
-        <tr>
-          <td><a href="#">CITATION</a></td>
-          <td><input type="checkbox" name="citationcheck" id="citationcheck"checked></td>
-          <td><input type="range" name="citationrange" id="citationrange" min="0" max="1" step="0.05" value="0.25" ></td>
-          <td><input type="radio" id="citationHighlight" name="citationhighlightstyle" value="Highlight" checked></td>
-          <td><input type="radio" id="citationUnderline" name="citationhighlightstyle" value="Underline"></td>
-          <td><input type="radio" id="citationRectangle" name="citationhighlightstyle" value="Rectangle"></td>
-          <td><input type="radio" id="citationSquigglyunderline" name="citationhighlightstyle" value="Squiggly underline"></td>
-          <td> <select name="citationprior" id="citationprior">
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                  <option value="10">10</option>
-                  <option value="11">11</option>
-                  <option value="12">12</option>
-                  <option value="13">13</option>
-                  <option value="14">14</option>
-                  <option value="15">15</option>
-                  <option value="16">16</option>
-                  <option value="17">17</option>
-                  <option value="18">18</option>
-                  <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
-          </td>
-          <td><select name="citationcolor" id="citationcolor" onchange="updateCustomColor(this, 'customcitationcolor')">
-            <option value="Grey">Grey</option>
-            <option value="Black">Black</option>
-            <option value="Red">Red</option>
-            <option value="Orange">Orange</option>
-            <option value="Yellow">Yellow</option>
-            <option value="Green">Green</option>
-            <option value="Lime">Lime</option>
-            <option value="Aqua">Aqua</option>
-            <option value="Cyan">Cyan</option>
-            <option value="Mid_Blue">Mid_Blue</option>
-            <option value="Dark_Blue">Dark_Blue</option>
-            <option value="Purple">Purple</option>
-            <option value="Magenta">Magenta</option>
-            <option value="HotPink">HotPink</option>
-            <option value="Brick">Brick</option>
-            <option value="Brick2">Brick2</option>
-            <option value="Salmon">Salmon</option>
-            <option value="PalePink">PalePink</option>
-            <option value="Light_Purple">Light_Purple</option>
-            <option value="LtYellow">LtYellow</option>
-            <option value="Dark_Green" selected>Dark_Green</option>
-            <option value="Custom">Custom</option></select>
-            <input id="customcitationcolor" name="customcitationcolor" type="color" value="#006400" disabled>
-          </td>
-        </tr>
-
 <!-- COURT -->
         <tr>
-          <td><a href="#">COURT</a></td>
-          <td><input type="checkbox" name="courtcheck" id="courtcheck"checked></td>
+          <td><a onmouseover="infoP('Selected category is COURT')" onmouseout="HideinfoP()"
+                 href="#">COURT</a></td>
+          <td><input onmouseover="infoP('Highlight ADDRESS in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="courtcheck" id="courtcheck"checked></td>
           <td><input type="range" name="courtrange" id="courtrange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="courtHighlight" name="courthighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="courtUnderline" name="courthighlightstyle" value="Underline"></td>
@@ -296,11 +246,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="courtcolor" id="courtcolor" onchange="updateCustomColor(this, 'customcourtcolor')">
             <option value="Grey">Grey</option>
@@ -331,8 +277,10 @@
 
 <!-- DATE -->
         <tr>
-          <td><a href="#">DATE</a></td>
-          <td><input type="checkbox" name="datecheck" id="datecheck"checked></td>
+          <td><a onmouseover="infoP('Selected category is DATE')" onmouseout="HideinfoP()"
+                 href="#">DATE</a></td>
+          <td><input onmouseover="infoP('Highlight ADDRESS in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="datecheck" id="datecheck"checked></td>
           <td><input type="range" name="daterange" id="daterange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="dateHighlight" name="datehighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="dateUnderline" name="datehighlightstyle" value="Underline"></td>
@@ -358,11 +306,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="datecolor" id="datecolor" onchange="updateCustomColor(this, 'customdatecolor')">
             <option value="Grey">Grey</option>
@@ -392,8 +336,10 @@
 
 <!-- EMAIL -->
         <tr>
-          <td><a href="#">EMAIL</a></td>
-          <td><input type="checkbox" name="emailcheck" id="emailcheck"checked></td>
+          <td><a onmouseover="infoP('Selected category is EMAIL')" onmouseout="HideinfoP()"
+                 href="#">EMAIL</a></td>
+          <td><input onmouseover="infoP('Highlight ADDRESS in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="emailcheck" id="emailcheck"checked></td>
           <td><input type="range" name="emailrange" id="emailrange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="emailHighlight" name="emailhighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="emailUnderline" name="emailhighlightstyle" value="Underline"></td>
@@ -419,11 +365,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="emailcolor" id="emailcolor" onchange="updateCustomColor(this, 'customemailcolor')">
             <option value="Grey">Grey</option>
@@ -451,72 +393,12 @@
           </td>
         </tr>
 
-<!-- INSTRUMENT -->
-        <tr>
-          <td><a href="#">INSTRUMENT</a></td>
-          <td><input type="checkbox" name="instrumentcheck" id="instrumentcheck"checked></td>
-          <td><input type="range" name="instrumentrange" id="instrumentrange" min="0" max="1" step="0.05" value="0.25" ></td>
-          <td><input type="radio" id="instrumentHighlight" name="instrumenthighlightstyle" value="Highlight" checked></td>
-          <td><input type="radio" id="instrumentUnderline" name="instrumenthighlightstyle" value="Underline"></td>
-          <td><input type="radio" id="instrumentRectangle" name="instrumenthighlightstyle" value="Rectangle"></td>
-          <td><input type="radio" id="instrumentSquigglyunderline" name="instrumenthighlightstyle" value="Squiggly underline"></td>
-          <td> <select name="instrumentprior" id="instrumentprior">
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                  <option value="10">10</option>
-                  <option value="11">11</option>
-                  <option value="12">12</option>
-                  <option value="13">13</option>
-                  <option value="14">14</option>
-                  <option value="15">15</option>
-                  <option value="16">16</option>
-                  <option value="17">17</option>
-                  <option value="18">18</option>
-                  <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
-          </td>
-          <td><select name="instrumentcolor" id="instrumentcolor" onchange="updateCustomColor(this, 'custominstrumentcolor')">
-            <option value="Grey">Grey</option>
-            <option value="Black">Black</option>
-            <option value="Red">Red</option>
-            <option value="Orange">Orange</option>
-            <option value="Yellow">Yellow</option>
-            <option value="Green">Green</option>
-            <option value="Lime">Lime</option>
-            <option value="Aqua">Aqua</option>
-            <option value="Cyan">Cyan</option>
-            <option value="Mid_Blue">Mid_Blue</option>
-            <option value="Dark_Blue">Dark_Blue</option>
-            <option value="Purple">Purple</option>
-            <option value="Magenta">Magenta</option>
-            <option value="HotPink">HotPink</option>
-            <option value="Brick">Brick</option>
-            <option value="Brick2">Brick2</option>
-            <option value="Salmon">Salmon</option>
-            <option value="PalePink">PalePink</option>
-            <option value="Light_Purple">Light_Purple</option>
-            <option value="LtYellow">LtYellow</option>
-            <option value="Light_Salmon" selected>Light_Salmon</option>
-            <option value="Custom">Custom</option></select>
-            <input id="custominstrumentcolor" name="custominstrumentcolor" type="color" value="#ffa07a" disabled>
-          </td>
-        </tr>
-
 <!-- JUDGE -->
         <tr>
-          <td><a href="#">JUDGE</a></td>
-          <td><input type="checkbox" name="judgecheck" id="judgecheck"checked></td>
+          <td><a onmouseover="infoP('Selected category is JUDGE')" onmouseout="HideinfoP()"
+                 href="#">JUDGE</a></td>
+          <td><input onmouseover="infoP('Highlight ADDRESS in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="judgecheck" id="judgecheck"checked></td>
           <td><input type="range" name="judgerange" id="judgerange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="judgeHighlight" name="judgehighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="judgeUnderline" name="judgehighlightstyle" value="Underline"></td>
@@ -542,11 +424,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="judgecolor" id="judgecolor" onchange="updateCustomColor(this, 'customjudgecolor')">
             <option value="Grey">Grey</option>
@@ -577,8 +455,10 @@
 
 <!-- KEY_POINT -->
         <tr>
-          <td><a href="#">KEY POINT</a></td>
-          <td><input type="checkbox" name="keypointcheck" id="keypointcheck"checked></td>
+          <td><a onmouseover="infoP('Selected category is KEY Point')" onmouseout="HideinfoP()"
+                 href="#">KEY POINT</a></td>
+          <td><input onmouseover="infoP('Highlight ADDRESS in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="keypointcheck" id="keypointcheck"checked></td>
           <td><input type="range" name="keypointrange" id="keypointrange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="keypointHighlight" name="keypointhighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="keypointUnderline" name="keypointhighlightstyle" value="Underline"></td>
@@ -604,11 +484,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="keypointcolor" id="keypointcolor" onchange="updateCustomColor(this, 'customkeypointcolor')">
             <option value="Grey">Grey</option>
@@ -639,8 +515,10 @@
 
 <!-- LAW -->
         <tr>
-          <td><a href="#">LAW</a></td>
-          <td><input type="checkbox" name="lawcheck" id="lawcheck"checked></td>
+          <td><a onmouseover="infoP('Selected category is LAW')" onmouseout="HideinfoP()"
+                 href="#">LAW</a></td>
+          <td><input onmouseover="infoP('Highlight LAW in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="lawcheck" id="lawcheck"checked></td>
           <td><input type="range" name="lawrange" id="lawrange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="lawHighlight" name="lawhighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="lawUnderline" name="lawhighlightstyle" value="Underline"></td>
@@ -666,11 +544,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="lawcolor" id="lawcolor" onchange="updateCustomColor(this, 'customlawcolor')">
             <option value="Grey">Grey</option>
@@ -700,8 +574,10 @@
 
 <!-- MONEY -->
         <tr>
-          <td><a href="#">MONEY</a></td>
-          <td><input type="checkbox" name="moneycheck" id="moneycheck"checked></td>
+          <td><a onmouseover="infoP('Selected category is MONEY')" onmouseout="HideinfoP()"
+                 href="#">MONEY</a></td>
+          <td><input onmouseover="infoP('Highlight MONEY in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="moneycheck" id="moneycheck"checked></td>
           <td><input type="range" name="moneyrange" id="moneyrange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="moneyHighlight" name="moneyhighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="moneyUnderline" name="moneyhighlightstyle" value="Underline"></td>
@@ -727,11 +603,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="moneycolor" id="moneycolor" onchange="updateCustomColor(this, 'custommoneycolor')">
             <option value="Grey">Grey</option>
@@ -761,8 +633,10 @@
 
 <!-- NEGATIVE_POINT -->
         <tr>
-          <td><a href="#">NEGATIVE_POINT</a></td>
-          <td><input type="checkbox" name="negativepointcheck" id="negativepointcheck" checked></td>
+          <td><a onmouseover="infoP('Selected category is Negative_POINT')" onmouseout="HideinfoP()"
+                 href="#">NEGATIVE_POINT</a></td>
+          <td><input onmouseover="infoP('Highlight NEGATIVE_POINT in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="negativepointcheck" id="negativepointcheck" checked></td>
           <td><input type="range" name="negativepointrange" id="negativepointrange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="negativepointHighlight" name="negativepointhighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="negativepointUnderline" name="negativepointhighlightstyle" value="Underline"></td>
@@ -788,11 +662,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="negativepointcolor" id="negativepointcolor" onchange="updateCustomColor(this, 'customnegativepointcolor')">
             <option value="Grey">Grey</option>
@@ -822,8 +692,10 @@
 
 <!-- NUMBER -->
         <tr>
-          <td><a href="#">NUMBER</a></td>
-          <td><input type="checkbox" name="numcheck" id="numcheck"checked></td>
+          <td><a onmouseover="infoP('Selected category is NUMBER')" onmouseout="HideinfoP()"
+                 href="#">NUMBER</a></td>
+          <td><input onmouseover="infoP('Highlight NUMBER in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="numcheck" id="numcheck"checked></td>
           <td><input type="range" name="numrange" id="numrange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="numHighlight" name="numhighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="numUnderline" name="numhighlightstyle" value="Underline"></td>
@@ -849,11 +721,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="numcolor" id="numcolor" onchange="updateCustomColor(this, 'customnumcolor')">
             <option value="Grey">Grey</option>
@@ -883,8 +751,10 @@
 
 <!-- ORG -->
         <tr>
-          <td><a href="#">ORG</a></td>
-          <td><input type="checkbox" name="orgcheck" id="orgcheck"checked></td>
+          <td><a onmouseover="infoP('Selected category is ORG')" onmouseout="HideinfoP()"
+                 href="#">ORG</a></td>
+          <td><input onmouseover="infoP('Highlight ORG in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="orgcheck" id="orgcheck"checked></td>
           <td><input type="range" name="orgrange" id="orgrange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="orgHighlight" name="orghighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="orgUnderline" name="orghighlightstyle" value="Underline"></td>
@@ -910,11 +780,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="orgcolor" id="orgcolor" onchange="updateCustomColor(this, 'customorgcolor')">
             <option value="Grey">Grey</option>
@@ -944,8 +810,10 @@
 
 <!-- PERSON -->
         <tr>
-          <td><a href="#">PERSON</a></td>
-          <td><input type="checkbox" name="personcheck" id="personcheck"checked></td>
+          <td><a onmouseover="infoP('Selected category is PERSON')" onmouseout="HideinfoP()"
+                 href="#">PERSON</a></td>
+          <td><input onmouseover="infoP('Highlight PERSON in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="personcheck" id="personcheck"checked></td>
           <td><input type="range" name="personrange" id="personrange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="personHighlight" name="personhighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="personUnderline" name="personhighlightstyle" value="Underline"></td>
@@ -971,11 +839,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="personcolor" id="personcolor" onchange="updateCustomColor(this, 'custompersoncolor')">
             <option value="Grey">Grey</option>
@@ -1005,8 +869,10 @@
 
 <!-- PHONE -->
         <tr>
-          <td><a href="#">PHONE</a></td>
-          <td><input type="checkbox" name="phonecheck" id="phonecheck"checked></td>
+          <td><a onmouseover="infoP('Selected category is PHONE')" onmouseout="HideinfoP()"
+                 href="#">PHONE</a></td>
+          <td><input onmouseover="infoP('Highlight PHONE in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="phonecheck" id="phonecheck"checked></td>
           <td><input type="range" name="phonerange" id="phonerange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="phoneHighlight" name="phonehighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="phoneUnderline" name="phonehighlightstyle" value="Underline"></td>
@@ -1032,11 +898,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="phonecolor" id="phonecolor" onchange="updateCustomColor(this, 'customphonecolor')">
             <option value="Grey">Grey</option>
@@ -1067,8 +929,10 @@
 
 <!-- POSITIVE_POINT -->
         <tr>
-          <td><a href="#">POSITIVE POINT</a></td>
-          <td><input type="checkbox" name="positivepointcheck" id="positivepointcheck"checked></td>
+          <td><a onmouseover="infoP('Selected category is POSITIVE_POINT')" onmouseout="HideinfoP()"
+                 href="#">POSITIVE POINT</a></td>
+          <td><input onmouseover="infoP('Highlight POSITIVE_POINT in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="positivepointcheck" id="positivepointcheck"checked></td>
           <td><input type="range" name="positivepointrange" id="positivepointrange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="positivepointHighlight" name="positivepointhighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="positivepointUnderline" name="positivepointhighlightstyle" value="Underline"></td>
@@ -1094,11 +958,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="positivepointcolor" id="positivepointcolor" onchange="updateCustomColor(this, 'custompositivepointcolor')">
             <option value="Grey">Grey</option>
@@ -1127,72 +987,12 @@
           </td>
         </tr>
 
-<!-- PROVISION -->
-        <tr>
-          <td><a href="#">PROVISION</a></td>
-          <td><input type="checkbox" name="provisioncheck" id="provisioncheck"checked></td>
-          <td><input type="range" name="provisionrange" id="provisionrange" min="0" max="1" step="0.05" value="0.25" ></td>
-          <td><input type="radio" id="provisionHighlight" name="provisionhighlightstyle" value="Highlight" checked></td>
-          <td><input type="radio" id="provisionUnderline" name="provisionhighlightstyle" value="Underline"></td>
-          <td><input type="radio" id="provisionRectangle" name="provisionhighlightstyle" value="Rectangle"></td>
-          <td><input type="radio" id="provisionSquigglyunderline" name="provisionhighlightstyle" value="Squiggly underline"></td>
-          <td> <select name="provisionprior" id="provisionprior">
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                  <option value="10">10</option>
-                  <option value="11">11</option>
-                  <option value="12">12</option>
-                  <option value="13">13</option>
-                  <option value="14">14</option>
-                  <option value="15">15</option>
-                  <option value="16">16</option>
-                  <option value="17">17</option>
-                  <option value="18">18</option>
-                  <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
-          </td>
-          <td><select name="provisioncolor" id="provisioncolor" onchange="updateCustomColor(this, 'customprovisioncolor')">
-            <option value="Grey">Grey</option>
-            <option value="Black">Black</option>
-            <option value="Red">Red</option>
-            <option value="Orange">Orange</option>
-            <option value="Yellow">Yellow</option>
-            <option value="Green">Green</option>
-            <option value="Lime">Lime</option>
-            <option value="Aqua">Aqua</option>
-            <option value="Cyan">Cyan</option>
-            <option value="Mid_Blue">Mid_Blue</option>
-            <option value="Dark_Blue">Dark_Blue</option>
-            <option value="Purple">Purple</option>
-            <option value="Magenta">Magenta</option>
-            <option value="HotPink">HotPink</option>
-            <option value="Brick">Brick</option>
-            <option value="Brick2">Brick2</option>
-            <option value="Salmon">Salmon</option>
-            <option value="PalePink">PalePink</option>
-            <option value="Light_Purple">Light_Purple</option>
-            <option value="LtYellow">LtYellow</option>
-            <option value="Tomato" selected>Tomato</option>
-          <option value="Custom">Custom</option></select>
-            <input id="customprovisioncolor" name="customprovisioncolor" type="color" value="#ff6347" disabled>
-          </td>
-        </tr>
-
 <!-- QUOTE -->
         <tr>
-          <td><a href="#">QUOTE</a></td>
-          <td><input type="checkbox" name="quotecheck" id="quotecheck"checked></td>
+          <td><a onmouseover="infoP('Selected category is QUOTE')" onmouseout="HideinfoP()"
+                 href="#">QUOTE</a></td>
+          <td><input onmouseover="infoP('Highlight QUOTE in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="quotecheck" id="quotecheck"checked></td>
           <td><input type="range" name="quoterange" id="quoterange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="quoteHighlight" name="quotehighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="quoteUnderline" name="quotehighlightstyle" value="Underline"></td>
@@ -1218,11 +1018,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="quotecolor" id="quotecolor" onchange="updateCustomColor(this, 'customquotecolor')">
             <option value="Grey">Grey</option>
@@ -1252,8 +1048,10 @@
 
 <!-- REDACTED -->
         <tr>
-          <td><a href="#">REDACTED</a></td>
-          <td><input type="checkbox" name="redactedcheck" id="redactedcheck"checked></td>
+          <td><a onmouseover="infoP('Selected category is REDACTED')" onmouseout="HideinfoP()"
+                 href="#">REDACTED</a></td>
+          <td><input onmouseover="infoP('Highlight REDACTED in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="redactedcheck" id="redactedcheck"checked></td>
           <td><input type="range" name="redactedrange" id="redactedrange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="redactedHighlight" name="redactedhighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="redactedUnderline" name="redactedhighlightstyle" value="Underline"></td>
@@ -1279,11 +1077,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="redactedcolor" id="redactedcolor" onchange="updateCustomColor(this, 'customredactedcolor')">
             <option value="Grey">Grey</option>
@@ -1313,8 +1107,10 @@
 
 <!-- TIME -->
         <tr>
-          <td><a href="#">TIME</a></td>
-          <td><input type="checkbox" name="timecheck" id="timecheck" checked></td>
+          <td><a onmouseover="infoP('Selected category is TIME')" onmouseout="HideinfoP()"
+                 href="#">TIME</a></td>
+          <td><input onmouseover="infoP('Highlight TIME in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="timecheck" id="timecheck" checked></td>
           <td><input type="range" name="timerange" id="timerange" min="0" max="1" step="0.05" value="0.25" ></td>
           <td><input type="radio" id="timeHighlight" name="timehighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="timeUnderline" name="timehighlightstyle" value="Underline"></td>
@@ -1340,11 +1136,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="timecolor" id="timecolor" onchange="updateCustomColor(this, 'customtimecolor')">
             <option value="Grey">Grey</option>
@@ -1374,8 +1166,10 @@
 
 <!-- WORD -->
         <tr>
-          <td><a href="#">WORD</a></td>
-          <td><input type="checkbox" name="wordcheck" id="wordcheck"></td>
+          <td><a onmouseover="infoP('Selected category is WORD')" onmouseout="HideinfoP()"
+                 href="#">WORD</a></td>
+          <td><input onmouseover="infoP('Highlight WORD in the analysis')" onmouseout="HideinfoP()"
+                     type="checkbox" name="wordcheck" id="wordcheck"></td>
           <td><input id="wordrange" type="range" name="wordrange" min="0" max="1" step="0.05" value="0.25"></td>
           <td><input type="radio" id="wordHighlight" name="wordhighlightstyle" value="Highlight" checked></td>
           <td><input type="radio" id="wordUnderline" name="wordhighlightstyle" value="Underline"></td>
@@ -1401,11 +1195,7 @@
                   <option value="17">17</option>
                   <option value="18">18</option>
                   <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option> </select>
+                  <option value="20">20</option> </select>
           </td>
           <td><select name="wordcolor" id="wordcolor" onchange="updateCustomColor(this, 'customwordcolor')">
             <option value="Grey" selected>Grey</option>
@@ -1433,7 +1223,6 @@
           </td>
         </tr>
 
-        </tbody>
         </table>
 
       <a class="btn btn-outline-primary"
@@ -1443,20 +1232,61 @@
               margin-left:5px;
               margin-right:5px;
               width: 99%;">Reset Settings</a>
-        <input type="text" name="save_settings_as" placeholder="Save Settings As"
+        <input onmouseover="infoP('Name of the settings to save as')" onmouseout="HideinfoP()"
+               type="text" name="save_settings_as" placeholder="Save Settings As"
                style="text-align: center;
                margin-bottom:10px;
                margin-left:5px;
                margin-right:5px;
                width: 99%;
                height:10px;">
+
+
+
+
+
+      <button type="submit" class="btn btn-outline-primary"  name = "view_settings"
+                                                           style="text-align: center;
+                                                           height: 10.5%;
+                                                           width: 15%;
+                                                           right: 3px;
+                                                           margin-right:30px;
+                                                           position: absolute;">View Settings</button>
+
+        <select onmouseover="infoP('Select from the save settings')" onmouseout="HideinfoP()"
+                name="usersettings" id="usersettings"
+                style="width: 82%;
+                text-align: center;
+                margin-bottom:10px;
+                margin-left:5px;
+                margin-right:5px">
+          <option disabled selected value> -- Select from saved settings -- </option>
+          {% for settings in user_settings %}
+          <option value="{{ settings.setting_field }} ">{{ settings.setting_field|settingsname }} </option>
+          {% endfor %}
+        </select>
+
+        <div class="custom-file" style="text-align: center;
+                                        margin-bottom:10px;
+                                        margin-left:5px;
+                                        margin-right:5px;
+                                        width: 82%;">
+          <label class="custom-file-label" for="customFile">Upload Custom settings JSON</label>
+          <input type="file" name="user_settings" class="custom-file-input" id="customFile">
+        </div>
+
+
         <button type="submit" class="btn btn-outline-primary"  name = "save_settings"
                                                            style="text-align: center;
+                                                           margin-top:30px;
                                                            margin-bottom:10px;
                                                            margin-left:5px;
                                                            margin-right:5px;
-                                                           width: 99%;">Save Settings</button>
+                                                           width: 99.5%;">Save Settings</button>
+
+
         </form>
+        </main>
       </div>
 
 <!-- CUSTOMECOLOR -->
@@ -1483,6 +1313,7 @@
   document.getElementById('addresscheck').checked = true;
   document.getElementById('barcheck').checked = true;
   document.getElementById('caselawcheck').checked = true;
+  document.getElementById('courtcheck').checked = true;
   document.getElementById('datecheck').checked = true;
   document.getElementById('emailcheck').checked = true;
   document.getElementById('lawcheck').checked = true;
@@ -1491,13 +1322,17 @@
   document.getElementById('numcheck').checked = true;
   document.getElementById('orgcheck').checked = true;
   document.getElementById('personcheck').checked = true;
+  document.getElementById('phonecheck').checked = true;
+  document.getElementById('positivepointcheck').checked = true;
   document.getElementById('quotecheck').checked = true;
+  document.getElementById('redactedcheck').checked = true;
   document.getElementById('timecheck').checked = true;
   document.getElementById('wordcheck').checked = false;
 
   document.getElementById('addressHighlight').checked = true;
   document.getElementById('barHighlight').checked = true;
   document.getElementById('caselawHighlight').checked = true;
+  document.getElementById('courtHighlight').checked = true;
   document.getElementById('dateHighlight').checked = true;
   document.getElementById('emailHighlight').checked = true;
   document.getElementById('lawHighlight').checked = true;
@@ -1506,13 +1341,17 @@
   document.getElementById('numHighlight').checked = true;
   document.getElementById('orgHighlight').checked = true;
   document.getElementById('personHighlight').checked = true;
+  document.getElementById('phoneHighlight').checked = true;
+  document.getElementById('positivepointHighlight').checked = true;
   document.getElementById('quoteHighlight').checked = true;
+  document.getElementById('redactedHighlight').checked = true;
   document.getElementById('timeHighlight').checked = true;
   document.getElementById('wordHighlight').checked = true;
 
   document.getElementById("addressrange").value = "0.25";
   document.getElementById("barrange").value = "0.25";
   document.getElementById("caselawrange").value = "0.25";
+  document.getElementById("courtrange").value = "0.25";
   document.getElementById("daterange").value = "0.25";
   document.getElementById("emailrange").value = "0.25";
   document.getElementById("lawrange").value = "0.25";
@@ -1521,7 +1360,10 @@
   document.getElementById("numrange").value = "0.25";
   document.getElementById("orgrange").value = "0.25";
   document.getElementById("personrange").value = "0.25";
+  document.getElementById("phonerange").value = "0.25";
+  document.getElementById("positivepointrange").value = "0.25";
   document.getElementById("quoterange").value = "0.25";
+  document.getElementById("redactedrange").value = "0.25";
   document.getElementById("timerange").value = "0.25";
   document.getElementById("wordrange").value = "0.25";
 
@@ -1534,7 +1376,7 @@
   document.getElementById('custombarcolor').value = '#fa8072'
   document.getElementById("custombarcolor").disabled = true;
 
-    document.getElementById('caselawcolor').value = 'Brick2'
+        document.getElementById('caselawcolor').value = 'Brick2'
   document.getElementById('customcaselawcolor').value = '#841F27'
   document.getElementById("customcaselawcolor").disabled = true;
 
@@ -1581,6 +1423,31 @@
     document.getElementById('wordcolor').value = 'Grey'
   document.getElementById('customwordcolor').value = '#D3D3D3'
   document.getElementById("customwordcolor").disabled = true;
+
+
+<!--  PRIORITY RESET-->
+    document.getElementById('addressprior').value = '2'
+    document.getElementById('barprior').value = '6'
+    document.getElementById('caselawprior').value = '1'
+    document.getElementById('courtprior').value = '1'
+    document.getElementById('dateprior').value = '1'
+    document.getElementById('emailprior').value = '1'
+    document.getElementById('judgeprior').value = '2'
+    document.getElementById('keypointprior').value = '8'
+    document.getElementById('lawprior').value = '1'
+    document.getElementById('moneyprior').value = '3'
+    document.getElementById('negativepointprior').value = '8'
+    document.getElementById('numberprior').value = '4'
+    document.getElementById('orgprior').value = '2'
+    document.getElementById('personprior').value = '2'
+    document.getElementById('phoneprior').value = '1'
+    document.getElementById('positivepointprior').value = '8'
+    document.getElementById('quoteprior').value = '8'
+    document.getElementById('redactedprior').value = '1'
+    document.getElementById('timeprior').value = '2'
+    document.getElementById('wordprior').value = '20'
   }
 </script>
+
+
 {% endblock %}

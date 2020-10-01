@@ -3,6 +3,8 @@
 
 <html lang="en" dir="ltr">
   <head>
+        <script src= "{% static 'javascript/popper.min.js' %}" type="text/javascript"></script>
+
       <style>
       .zoom:hover{ -webkit-transform: scale(1.2); }
       .tooltip {
@@ -42,6 +44,29 @@
       bottom: 0;
       overflow: auto;
   }
+
+  #Information{
+          position: fixed !important;
+          text-align:center !important;
+          line-height: 110px;
+          top: 22% !important;
+          width:120% !important;
+          height:10%;
+          margin-top: -10em;
+          margin-left: -15em;
+          border: 2px solid;
+          opacity: 0.85;
+          visibility: hidden;
+          z-index: 100;
+          color:#000000	;
+  }
+  .container-bg {
+    background: #343a40;
+}
+
+.footer-content{
+padding: 10px;
+}
 
 
        </style>
@@ -112,13 +137,15 @@
 
       <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
         <div class="navbar-nav">
-          <a class="nav-item nav-link" href="uploaddocument.html">Sandbox</a>
+          <a onmouseover="infoP('Upload PDF(s) to analyse')" onmouseout="HideinfoP()"
+             class="nav-item nav-link" href="uploaddocument.html">Upload Document</a>
         </div>
 
         {% if user.is_authenticated %}
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
         <div class="navbar-nav">
-          <a class="nav-item nav-link" href="analysedocument.html">Analyse PDF</a>
+          <a onmouseover="infoP('Analyse existing PDF(s)')" onmouseout="HideinfoP()"
+             class="nav-item nav-link" href="analysedocument.html">Analyse PDF</a>
         </div>
           {% endif %}
 
@@ -134,7 +161,8 @@
           {% if user.is_authenticated %}
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
               <div class="navbar-nav">
-                <a class="nav-item nav-link" href="{% url 'settingspage' %}">Settings</a>
+                <a onmouseover="infoP('Customise the highlighting, priority and opacity settings')" onmouseout="HideinfoP()"
+                   class="nav-item nav-link" href="{% url 'settingspage' %}">Settings</a>
               </div>
 
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -163,7 +191,35 @@
 {% block body_block %}
 
 {% endblock %}
+<p id="Information">
+</p>
 
+  <footer class="footer" style="position:fixed;
+                                  width:100%;
+                                  bottom: 0px;
+                                  right:0px;
+                                  z-index: 101;" >
+    <div class="container-bg">
+      <div class="footer-content">
+        <div class="container">
+          <a href="privacypolicy.html" style="margin-left:4em; font-size:10px;" class="footer-text">Privacy policy</a>
+          <a href="enduseragreement.html" style="margin-left:4em; font-size:10px;" class="footer-text">End User Agreement</a>
+          <a href="contactus.html" style="margin-left:4em; font-size:10px;" class="footer-text">Contact us</a>
+
+          <a href="#" style="margin-left:4em; font-size:10px; float: right; margin: 5px;" class="footer-text">
+            <img class = "zoom" src="/static/icons/facebook.png" style="width:24px;height:24px;">
+          </a>
+          <a href="#" style="margin-left:4em; font-size:10px; float: right; margin: 5px;" class="footer-text">
+            <img class = "zoom" src="/static/icons/twitter.png" style="width:24px;height:24px;">
+          </a>
+          <a href="#" style="margin-left:4em; font-size:10px; float: right; margin: 5px;" class="footer-text">
+            <img class = "zoom" src="/static/icons/linkedin.png" style="width:24px;height:24px;">
+          </a>
+
+        </div>
+      </div>
+    </div>
+  </footer>
 </div>
 
 
@@ -231,5 +287,19 @@ function closeNavtworesult() {
         }
         }
 </script>
+
+  <script>
+function infoP(info) {
+  document.getElementById("Information").style.visibility = "visible";
+  document.getElementById("Information").innerHTML = info;
+  document.getElementById("Information").style.backgroundColor = "#CCFF99";
+}
+</script>
+<script>
+function HideinfoP() {
+  document.getElementById("Information").style.visibility = "hidden";
+}
+</script>
   </body>
+
 </html>

@@ -28,7 +28,7 @@ exportHyperlinks = True
 DEFAULT_CULTURE = Culture.English
 LOCALES = ['en-AU']  # affects parsing of Dates
 pathsep = "/"  # OS dependent
-if debug: print("pathsep: ", pathsep)
+
 outfldr = ""  # optional output subfolder
 ModesDict = {
     "Highlight": "Highlight",
@@ -146,12 +146,11 @@ def ExporttoPDF(overlap, prioritydict):
 def ExtractHighlights(absolutedocumentlist):
     global time, file_sel_list, debug
     timestr = time.strftime("%Y%m%d-%H%M%S")
-    ##    print(file_sel_list)
     successText, failureText, failure2Text = "", "", ""
     ##    try:
     for file in absolutedocumentlist:
         outputFileName = file + timestr[9:] + ".xlsx"
-        print(outputFileName)
+
         res = pdfannot2df(file, outputFileName, debug)
         if res[0] != "": successText += ", " + res[0]
         if res[1] != "": failureText += "\n" + res[1]
@@ -162,7 +161,7 @@ def DeleteHighlights(absolutedocumentlist, eff=None, listbox=object, label=objec
     global time, file_sel_list, debug7
     HLsFound = False
     failureMsg = ""
-    if debug7: print("in DeleteHighlights")
+
     file_sel_list = absolutedocumentlist
 
     timestr = time.strftime("%Y%m%d-%H%M%S")
@@ -247,7 +246,7 @@ def _extract_word_from_highlight(annot, words, debug=False):
 
         if annot.next and annot.next.info['content']:
             label_next = annot.next.info['content']
-            print(annot.next.info) if debug else 0
+
 
             while annot.next and annot.next.info['content'] and label_next[(len(label_next) - 4):(
                     len(label_next) - 1)] == '-/-' and int(label_next[len(label_next) - 1]) > 1:
@@ -271,14 +270,11 @@ def pdfannot2df(input_pdf, outputFileName, debug):
     context = ""
     contentDict = {}
     for ixpage, page in enumerate(pdf):
-        print(page)
         tmp = {'page': ixpage + 1, 'pdf_path': input_pdf, 'page_width': page.rect[2], 'page_height': page.rect[3]}
         words = page.getTextWords()
         annot = page.firstAnnot
-        print('annot : ', annot) if debug else 0
-        print('page : ', ixpage) if debug else 0
+
         while annot:
-            print('type annot : ', annot.type[1]) if debug else 0
             mywords = []
             date1, date2, content, context = "", "", "", ""
 
@@ -407,22 +403,23 @@ def analyse_file_webapp(self, lst, overlap, prioritydict):
     #### to manage overlapping of highlights
     if overlap == 0: # If user do not want to overlap(Checkbox unticked)
         for com in itertools.combinations(prioritydict.keys(), 2):
-            for k in list(d[com[0]].keys()):
-                if k in list(d[com[1]].keys()):
-                    if prioritydict[com[0]] > prioritydict[com[1]]:
-                        try: d[com[0]].pop(k)
-                        except: pass
-                    elif prioritydict[com[0]] < prioritydict[com[1]]:
-                        try: d[com[1]].pop(k)
-                        except: pass
+            if (com[0] in d) and (com[1] in d):
+                for k in list(d[com[0]].keys()):
+                    if k in list(d[com[1]].keys()):
+                        if prioritydict[com[0]] > prioritydict[com[1]]:
+                            try: d[com[0]].pop(k)
+                            except: pass
+                        elif prioritydict[com[0]] < prioritydict[com[1]]:
+                            try: d[com[1]].pop(k)
+                            except: pass
 
-                if k in list(d[com[0]].keys()):
-                    if prioritydict[com[0]] > prioritydict[com[1]]:
-                        try: d[com[0]].pop(k)
-                        except: pass
-                    elif prioritydict[com[0]] < prioritydict[com[1]]:
-                        try: d[com[1]].pop(k)
-                        except: pass
+                    if k in list(d[com[0]].keys()):
+                        if prioritydict[com[0]] > prioritydict[com[1]]:
+                            try: d[com[0]].pop(k)
+                            except: pass
+                        elif prioritydict[com[0]] < prioritydict[com[1]]:
+                            try: d[com[1]].pop(k)
+                            except: pass
 
     DocDict = results[tuple(lst)][1]
     DocDictList = results[tuple(lst)][2]

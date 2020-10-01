@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.urls import path, include
 from pdfscanner import views
 from django.conf.urls import url
+from django.views.static import serve
 from webappproject import settings
 import django
 
@@ -47,7 +48,13 @@ urlpatterns = [
     path(r'celery-progress/', include('celery_progress.urls')),
     url(r'analysisresult.html', views.analysisresult, name='analysisresult'),
     url(r'^settingspage$', views.settingspage, name='settingspage'),
+    url('^downloadfilemeta', views.downloadfilemeta, name='downloadfilemeta'),
+    url('^extractimages', views.extractimages, name='extractimages'),
+    url('^pdftoimage', views.pdftoimage, name='pdftoimage'),
+    path('privacypolicy.html', views.privacypolicy, name='privacypolicy'),
+    path('enduseragreement.html', views.enduseragreement, name='enduseragreement'),
+    path('contactus.html', views.contactus, name='contactus'),
     ## TODO look into this url creating error while migrating
-    url(r'^(.*?)media/(?P<path>.*)$', django.views.static.serve,
+    url(r'^(.*?)media/(?P<path>.*)$', serve,
         {'document_root': settings.MEDIA_ROOT}),
 ]

@@ -25,6 +25,9 @@ import rpy2.robjects as robjects
 from datetime import datetime
 import re
 import fitz
+from PyPDF2 import PdfFileReader
+import pandas as pd
+from Modules import BinaryPdfForensics as BPF
 from celery import shared_task
 from celery_progress.backend import ProgressRecorder
 
@@ -225,37 +228,41 @@ def documentsview(request):
 
         prioritydict = request.session['prioritydict']  ## Storing the priority list into the request session
 
-        if 'view_settings' in request.POST:
+        # if 'view_settings' in request.POST:
+        #
+        #     # if 'user_settings' in request.FILES:
+        #     #     usersettings = request.FILES['user_settings'].read()
+        #     #     data = json.loads(usersettings)
+        #
+        #     # elif 'usersettings' in request.POST:
+        #     #     with open((settings.MEDIA_DIR + request.POST.getlist('usersettings')[0]).strip()) as fp:
+        #     #         data = json.load(fp)
+        #
+        #     # else:
+        #     #     return HttpResponse("Please select a setting to view")
+        #
+        #     for key, value in data.items():
+        #         if (value[0][0] < 1) and (value[0][0] < 1) and (value[0][0] < 1):
+        #             data[key][0] = (value[0][0] * 255,
+        #                             value[0][1] * 255,
+        #                             value[0][2] * 255)
+        #
+        #     return render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "viewsettings.html"),
+        #                   {'settingsdata': data})
 
-            if 'user_settings' in request.FILES:
-                usersettings = request.FILES['user_settings'].read()
-                data = json.loads(usersettings)
-
-            elif 'usersettings' in request.POST:
-                with open((settings.MEDIA_DIR + request.POST.getlist('usersettings')[0]).strip()) as fp:
-                    data = json.load(fp)
-
-            else:
-                return HttpResponse("Please select a setting to view")
-
-            for key, value in data.items():
-                if (value[0][0] < 1) and (value[0][0] < 1) and (value[0][0] < 1):
-                    data[key][0] = (value[0][0] * 255,
-                                    value[0][1] * 255,
-                                    value[0][2] * 255)
-
-            return render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "viewsettings.html"),
-                          {'settingsdata': data})
-
-        if 'usersettings' in request.POST:
-            with open((settings.MEDIA_DIR + request.POST.getlist('usersettings')[0]).strip()) as fp:
-                data = json.load(fp)
-                gui.InvColorDictLabelstoColors = data
+        # if 'usersettings' in request.POST:
+        #     with open((settings.MEDIA_DIR + request.POST.getlist('usersettings')[0]).strip()) as fp:
+        #         data = json.load(fp)
+        #         gui.InvColorDictLabelstoColors = data
 
         if 'user_settings' in request.FILES:
             usersettings = request.FILES['user_settings'].read()
             jsonfile = json.loads(usersettings)
             gui.InvColorDictLabelstoColors = jsonfile
+
+        usersettings = request.session['usersettings']
+        gui.InvColorDictLabelstoColors = usersettings
+
 
         request.session['InvColorDictLabelstoColors'] = gui.InvColorDictLabelstoColors
         ## Getting the list of documents to be analysed
@@ -281,8 +288,7 @@ def documentsview(request):
                                'resulttask': resulttask})
 
     return render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "analysedocument.html"),
-                  {'documents': FileDocument.objects.filter(user=request.user),
-                   'user_settings': UserSettingsDocument.objects.filter(user=request.user)})
+                  {'documents': FileDocument.objects.filter(user=request.user)})
 
 def analysisresult(request):
     if request.method == 'POST':
@@ -326,7 +332,7 @@ def analysisresult(request):
                             elif bool(re.match(r"'[0-9]{1,2}", k)):
                                 newdate = re.sub("'", "20", k)
 
-                        r('library(lubridate)')
+                        r('library("lubridate")')
                         new_key = r(
                             'parse_date_time("' + newdate + '", orders = c("ymd", "dmy", "mdy", "bdy", "bY", "b", "Yb", "Y"))[1]')[
                             0]
@@ -365,6 +371,73 @@ def deletedocument(request, pk):
         return HttpResponse("User not authorised to perform this action")
     return render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "analysedocument.html"),
                   {'documents': FileDocument.objects.filter(user=request.user)})
+
+@login_required
+def downloadfilemeta(request):
+    pk = request.GET['key']
+    doc = FileDocument.objects.get(pk=pk)
+    path = doc.file_field.path
+    infodf = {}
+    bpf = BPF.BinaryPdfForensics(path)
+    file_stats = bpf.file_stats()
+    file_hashes = bpf.file_hashes()
+    infodf["Path"] = file_stats[0]
+    infodf["File Size"] = file_stats[1]
+    infodf["Most Recent Access"] = file_stats[2]
+    infodf["Most Recent Content Change"] = file_stats[3]
+    infodf["Most Recent Metadata Change"] = file_stats[4]
+
+    infodf["MD5 Hash"] = file_hashes[0]
+    infodf["SHA1 Hash"] = file_hashes[1]
+    infodf["SHA224 Hash"] = file_hashes[2]
+    infodf["SHA256 Hash"] = file_hashes[3]
+    infodf["SHA384 Hash"] = file_hashes[4]
+    infodf["SHA512 Hash"] = file_hashes[5]
+
+    infodf = pd.DataFrame([infodf])
+    infodf = infodf.T.reset_index().T
+    infodf = infodf.T
+    infodf.columns = ['Parameter', 'Value']
+    infodf.to_csv("infodf.csv", index=False)
+    with open('infodf.csv') as myfile:
+        response = HttpResponse(myfile, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=infodf.csv'
+        return response
+
+
+@login_required
+def pdftoimage(request):
+    pk = request.GET['key']
+    doc = FileDocument.objects.get(pk=pk)
+    path = doc.file_field.path
+    bpf = BPF.BinaryPdfForensics(path)
+    bpf.pdftoimage()
+    shutil.make_archive("pdftoimage", 'zip', "pdftoimage")
+    response = HttpResponse(open(settings.BASE_DIR + "/pdftoimage.zip", 'rb'), content_type='application/zip')
+    response['Content-Disposition'] = 'attachment; filename=pdftoimage.zip'
+    try:
+        shutil.rmtree("pdftoimage")
+        os.remove("pdftoimage.zip")
+    except:
+        pass
+    return response
+
+@login_required
+def extractimages(request):
+    pk = request.GET['key']
+    doc = FileDocument.objects.get(pk=pk)
+    path = doc.file_field.path
+    bpf = BPF.BinaryPdfForensics(path)
+    bpf.get_image()
+    shutil.make_archive("extractedImages", 'zip', "extractedImages")
+    response = HttpResponse(open(settings.BASE_DIR + "/extractedImages.zip", 'rb'), content_type='application/zip')
+    response['Content-Disposition'] = 'attachment; filename=extractedImages.zip'
+    try:
+        shutil.rmtree("extractedImages")
+        os.remove("extractedImages.zip")
+    except:
+        pass
+    return response
 
 
 @login_required
@@ -642,6 +715,38 @@ def settingspage(request):
             return 0
 
     if request.method == 'POST':
+
+        if 'view_settings' in request.POST:
+
+            if 'user_settings' in request.FILES:
+                usersettings = request.FILES['user_settings'].read()
+                data = json.loads(usersettings)
+
+            elif 'usersettings' in request.POST:
+                with open((settings.MEDIA_DIR + request.POST.getlist('usersettings')[0]).strip()) as fp:
+                    data = json.load(fp)
+
+            else:
+                return HttpResponse("Please select a setting to view")
+
+            for key, value in data.items():
+                if (value[0][0] < 1) and (value[0][0] < 1) and (value[0][0] < 1):
+                    data[key][0] = (value[0][0] * 255,
+                                    value[0][1] * 255,
+                                    value[0][2] * 255)
+
+            return render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "viewsettings.html"),
+                          {'settingsdata': data})
+
+        #TODO: Remove this shit
+        if 'usersettings' in request.POST:
+            with open((settings.MEDIA_DIR + request.POST.getlist('usersettings')[0]).strip()) as fp:
+                data = json.load(fp)
+                gui.InvColorDictLabelstoColors = data
+                request.session["usersettings"] = data
+            return render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "settingspage.html"),
+                              {'user_settings': UserSettingsDocument.objects.filter(user=request.user)})
+
         # ######## USER WANTS TO SAVE SETTINGS
         if 'save_settings' in request.POST:
 
@@ -690,11 +795,11 @@ def settingspage(request):
             prioritydict['ADDRESS'] = int(request.POST.getlist('addressprior')[0])
             prioritydict['BARCODE'] = int(request.POST.getlist('barprior')[0])
             prioritydict['CASELAW'] = int(request.POST.getlist('caselawprior')[0])
-            prioritydict['CITATION'] = int(request.POST.getlist('citationprior')[0])
+            # prioritydict['CITATION'] = int(request.POST.getlist('citationprior')[0])
             prioritydict['COURT'] = int(request.POST.getlist('courtprior')[0])
             prioritydict['DATE'] = int(request.POST.getlist('dateprior')[0])
             prioritydict['EMAIL'] = int(request.POST.getlist('emailprior')[0])
-            prioritydict['INSTRUMENT'] = int(request.POST.getlist('instrumentprior')[0])
+            # prioritydict['INSTRUMENT'] = int(request.POST.getlist('instrumentprior')[0])
             prioritydict['JUDGE'] = int(request.POST.getlist('judgeprior')[0])
             prioritydict['KEY_POINT'] = int(request.POST.getlist('keypointprior')[0])
             prioritydict['LAW'] = int(request.POST.getlist('lawprior')[0])
@@ -705,7 +810,7 @@ def settingspage(request):
             prioritydict['PERSON'] = int(request.POST.getlist('personprior')[0])
             prioritydict['PHONE'] = int(request.POST.getlist('phoneprior')[0])
             prioritydict['POSITIVE_POINT'] = int(request.POST.getlist('positivepointprior')[0])
-            prioritydict['PROVISION'] = int(request.POST.getlist('provisionprior')[0])
+            # prioritydict['PROVISION'] = int(request.POST.getlist('provisionprior')[0])
             prioritydict['QUOTE'] = int(request.POST.getlist('quoteprior')[0])
             prioritydict['REDACTED'] = int(request.POST.getlist('redactedprior')[0])
             prioritydict['TIME'] = int(request.POST.getlist('timeprior')[0])
@@ -734,9 +839,22 @@ def settingspage(request):
             obj.setting_field = "/usersettings/" + str(request.user) + "_" + save_as + ".json"
             obj.save()
 
-            return response
+            return render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "settingspage.html"),
+                          {'user_settings': UserSettingsDocument.objects.filter(user=request.user)})
 
-    return render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "settingspage.html"))
+    return render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "settingspage.html"),
+                  {'user_settings': UserSettingsDocument.objects.filter(user=request.user)})
+
+
+def privacypolicy(request):
+    return  render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "privacypolicy.html"))
+
+def enduseragreement(request):
+    return  render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "enduseragreement.html"))
+
+def contactus(request):
+    return  render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "contactus.html"))
+
 
 def test(request):
     results = {}
