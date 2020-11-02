@@ -408,6 +408,18 @@ def downloadfilemeta(request):
     bpf = BPF.BinaryPdfForensics(path)
     file_stats = bpf.file_stats()
     file_hashes = bpf.file_hashes()
+
+    version = bpf.pdf_magic()
+
+    info_ref = bpf.get_info_ref()
+    info_count = len(info_ref[1])
+    info_obj = bpf.get_info_obj()
+    info_obj_count = len(info_obj[1])
+    xmp_ref = bpf.get_xmp_ref()
+    xmp_count = len(xmp_ref[1])
+    xmp_obj = bpf.get_xmp_obj()
+    xmp_obj_count = len(xmp_obj[1])
+
     infodf["Path"] = file_stats[0]
     infodf["File Size"] = file_stats[1]
     infodf["Most Recent Access"] = file_stats[2]
@@ -420,6 +432,20 @@ def downloadfilemeta(request):
     infodf["SHA256 Hash"] = file_hashes[3]
     infodf["SHA384 Hash"] = file_hashes[4]
     infodf["SHA512 Hash"] = file_hashes[5]
+
+    infodf["PDF Version"] = version[1]
+
+    infodf["Document Information Dictionary"] = info_ref
+    infodf["Total Number of document information directory references"] = info_count
+
+    infodf["info obj"] = info_obj
+    infodf["Total Number of document information directory objects"] = info_obj_count
+
+    infodf["xmp ref"] = info_obj
+    infodf["Total number of XMP metadata references"] = info_obj_count
+
+    infodf["xmp obj"] = info_obj
+    infodf["Total number of XMP metadata objects"] = info_obj_count
 
     infodf = pd.DataFrame([infodf])
     infodf = infodf.T.reset_index().T

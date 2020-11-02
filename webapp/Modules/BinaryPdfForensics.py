@@ -136,6 +136,241 @@ class BinaryPdfForensics:
         ]
         return hash_list
 
+    def get_info_ref(self):
+        """Tests if a PDF file contains an /Info reference
+
+        This method reads the input file as a binary stream,
+        and then performs a regex search, to determine if it
+        contains a document information dictionary reference.
+        This method only works with valid PDF files, and will
+        produce unexpected errors if used on other file types.
+        PDF file type should be verified first with the
+        pdf_magic() method.
+
+        Args:
+            temp_path: The path (can be full or abbreviated) of
+            the file to be tested.
+
+        Returns:
+            This method returns a tuple containing two values:
+            (1) a Boolean value identifying whether or not the PDF
+            contains the /Info reference, and (2) a list of any
+            located binary document information dictionary string
+            references. Example of the info value:
+
+                /Info 2 0 R
+        """
+        with open(self.file_path, 'rb') as raw_file:
+            read_file = raw_file.read()
+            regex = b'[/]Info[\s0-9]*?R'
+            pattern = re.compile(regex, re.DOTALL)
+            info_ref = re.findall(pattern, read_file)
+            info_ref = self.de_dupe_list(info_ref)
+            if len(info_ref) == 0:
+                info_ref_exists = False
+            else:
+                info_ref_exists = True
+            return (info_ref_exists, info_ref)
+
+    def get_info_obj(self):
+        """Extracts /Info objects from PDF file
+
+        This method reads the input file as a binary stream,
+        and then calls the get_info_ref() function to get any
+        /Info references in the file. Any located /Info refs
+        are then used to locate any matching /Info objects
+        in the file. Example of the /Info object:
+
+            2 0 obj
+            << ... >>
+            endobj
+
+        Args:
+            temp_path: The path (can be full or abbreviated) of
+            the file to be tested.
+
+        Returns:
+            This method returns a tuple containing the following
+            elements: (1) a boolean value of whether or not an
+            /Info object exists, and (2) a dictionary which maps
+            the /Info references with their objects.
+        """
+        with open(self.file_path, 'rb') as raw_file:
+            read_file = raw_file.read()
+            info_ref_tuple = self.get_info_ref()
+            info_obj_dict = {}
+            for ref in info_ref_tuple[1]:
+                info_ref = ref.decode()
+                info_ref = info_ref.replace('/Info ', '') \
+                    .replace(' R', '')
+                info_ref = str.encode(info_ref)
+                regex = b'[^0-9]' + info_ref + b'[ ]obj.*?endobj'
+                pattern = re.compile(regex, re.DOTALL)
+                info_obj = re.findall(pattern, read_file)
+                info_obj = self.de_dupe_list(info_obj)
+                if len(info_obj) > 0:
+                    for obj in info_obj:
+                        info_obj_dict[ref] = obj
+            if len(info_obj_dict) == 0:
+                info_obj_exists = False
+            else:
+                info_obj_exists = True
+            return (info_obj_exists, info_obj_dict)
+
+    def get_xmp_ref(self):
+        """Tests if a PDF file contains a /Metadata reference
+
+        This method reads the input file as a binary stream,
+        and then performs a regex search, to determine if it
+        contains an XMP metadata reference. This method only
+        works with valid PDF files, and will produce unexpected
+        errors if used on other file types. PDF file type should
+        be verified first with the pdf_magic() method.
+
+        Args:
+            temp_path: The path (can be full or abbreviated) of
+            the file to be tested.
+
+        Returns:
+            This method returns a tuple containing two values:
+            (1) a Boolean value identifying whether or not the PDF
+            contains the /Metadata reference, and (2) a list of
+            any located binary XMP metadata string references.
+            Example of the XMP metadata reference:
+
+                /Metadata 3 0 R
+        """
+        with open(self.file_path, 'rb') as raw_file:
+            read_file = raw_file.read()
+            regex = b'[/]Metadata[\s0-9]*?R'
+            pattern = re.compile(regex, re.DOTALL)
+            xmp_ref = re.findall(pattern, read_file)
+            xmp_ref = self.de_dupe_list(xmp_ref)
+            if len(xmp_ref) == 0:
+                xmp_ref_exists = False
+            else:
+                xmp_ref_exists = True
+            return (xmp_ref_exists, xmp_ref)
+
+    def de_dupe_list(self, list_var):
+        """Removes duplicate elements from list
+
+        This function reads the input list, and creates a new
+        blank list. It iterates over each element of the input
+        list and adds each unique elelemnt to the new list, with
+        any duplicated elements being ignored.
+
+        Args:
+            list_var: Any list object.
+
+        Returns:
+            This function returns a list of unique elements from
+            the input arg.
+        """
+        new_list = []
+        for element in list_var:
+            if element not in new_list:
+                new_list.append(element)
+        return new_list
+
+    def get_xmp_obj(self):
+        """Extracts /Metadata objects from PDF file
+
+        This method reads the input file as a binary stream,
+        and then calls the get_xmp_ref() function to get any
+        /Info references in the file. Any located /Metadata refs
+        are then used to locate any matching /Metadata objects
+        in the file. Example of /Metadata object:
+
+            3 0 obj
+            <</Length 4718/Subtype/XML/Type/Metadata>>stream
+            <?xpacket begin="ï»¿" id="W5M0MpCehiHzreSzNTczkc9d"?>
+            <x:xmpmeta ...
+            </x:xmpmeta>
+            <?xpacket end="w"?>
+            endstream
+            endobj
+
+        Args:
+            temp_path: The path (can be full or abbreviated) of
+            the file to be tested.
+
+        Returns:
+            This method returns a tuple containing the following
+            elements: (1) a boolean value of whether or not an
+            /Metadata object exists, and (2) a dictionary which
+            maps the /Metadata references with their objects.
+        """
+        with open(self.file_path, 'rb') as raw_file:
+            read_file = raw_file.read()
+            xmp_ref_tuple = self.get_xmp_ref()
+            xmp_obj_dict = {}
+            for ref in xmp_ref_tuple[1]:
+                xmp_ref = ref.decode()
+                xmp_ref = xmp_ref.replace('/Metadata ', '') \
+                    .replace(' R', '')
+                xmp_ref = str.encode(xmp_ref)
+                regex = b'[^0-9]' + xmp_ref + b'[ ]obj.*?endobj'
+                pattern = re.compile(regex, re.DOTALL)
+                xmp_obj = re.findall(pattern, read_file)
+                xmp_obj = self.de_dupe_list(xmp_obj)
+                if len(xmp_obj) > 0:
+                    for obj in xmp_obj:
+                        xmp_obj_dict[ref] = obj
+            if len(xmp_obj_dict) == 0:
+                xmp_obj_exists = False
+            else:
+                xmp_obj_exists = True
+            return (xmp_obj_exists, xmp_obj_dict)
+
+    def pdf_magic(self):
+        """Tests if file contains PDF magic number
+
+        This method reads the input file as a binary stream,
+        and interrogates the first four bytes, to determine
+        if they decode to the PDF magic number ('%PDF'). This
+        is used to determine whether or not a file, regardless
+        of its extension, is a PDF.
+
+        Args:
+            file_path: The path (can be full or abbreviated) of
+            the file to be tested.
+
+        Returns:
+            This method returns a tuple containing two values:
+            (1) a Boolean value identifying whether or not the
+            input path is a PDF file, and (2) a string description
+            of the magic assessment. For PDF files, this string
+            value will contain the version of the PDF. Example of
+            the magic number:
+
+                %PDF-1.4
+
+        Exceptions:
+            UnicodeDecodeError: Bytes cannot be decoded.
+
+            IsADirectoryError: Input is a directory.
+
+            FileNotFoundError: Input path does not exist.
+        """
+        try:
+            with open(self.file_path, 'rb') as raw_file:
+                read_file = raw_file.read()
+                magic_val = read_file[0:4].decode()
+                pdf_version = read_file[1:8].decode()
+                if magic_val == '%PDF':
+                    return (True, pdf_version)
+                else:
+                    return (False, 'Non-PDF File')
+        except UnicodeDecodeError:
+            return (False, 'Non-PDF File')
+        except IsADirectoryError:
+            return (False, 'Directory')
+        except FileNotFoundError:
+            return (False, 'File Not Found')
+
+
+
     def get_image(self):
         if not os.path.exists('extractedImages'):
             os.makedirs('extractedImages')
