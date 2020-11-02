@@ -98,10 +98,11 @@ def Highlight_Analyse(self, lst, ColorDict, savePDF, saveExcel, saveExcelUVO, la
     progress_recorder = ProgressRecorder(self)
 
     i = 0
+
     pagecount = 0
     for input_pdf in lst:
         pdf = PdfFileReader(open(input_pdf, 'rb'))
-        pagecount += pagecount + pdf.getNumPages()
+        pagecount = pagecount + pdf.getNumPages()
 
     for input_pdf in lst:
 
@@ -110,7 +111,7 @@ def Highlight_Analyse(self, lst, ColorDict, savePDF, saveExcel, saveExcelUVO, la
         for input_count in range(pagecount):
             # progress_recorder.set_progress(i, pagecount, f'processing PDF {input_pdf.split("/")[-1]}')
             time.sleep(random.uniform(0, 1.5))
-            progress_recorder.set_progress(input_count, pagecount, f'processing page {input_count + 1}')
+            progress_recorder.set_progress(input_count, pagecount, f'processing page {input_count + 1}, Working on analysing {input_pdf.split("/")[-1]}')
         i = i + 1
 
         pdl = PDF2DictList(input_pdf)
@@ -180,7 +181,6 @@ def Highlight_Analyse(self, lst, ColorDict, savePDF, saveExcel, saveExcelUVO, la
 
         if "LAW" in d.keys():
             for key, v in list(d["LAW"].items()):
-                print(key)
                 if 'the ' in key:
                     d["LAW"][re.sub('the ', "", key)] = d["LAW"].pop(key)
                     continue
@@ -194,7 +194,16 @@ def Highlight_Analyse(self, lst, ColorDict, savePDF, saveExcel, saveExcelUVO, la
         if "ORG" in d.keys():
             for key, v in list(d["ORG"].items()):
                 if "'s" in key:
-                    d["LAW"][re.sub("'s", "", key)] = d["ORG"].pop(key)
+                    d["ORG"][re.sub("'s", "", key)] = d["ORG"].pop(key)
+                    continue
+                if 'the ' in key:
+                    d["ORG"][re.sub('the ', "", key)] = d["ORG"].pop(key)
+                    continue
+                if 'The ' in key:
+                    d["ORG"][re.sub('The ', "", key)] = d["ORG"].pop(key)
+                    continue
+            for key, v in list(d["ORG"].items()):
+                d["ORG"][key.strip()] = d["ORG"].pop(key)
 
 
 
@@ -289,6 +298,7 @@ def PDF2DictList(input_pdf):
                     k.strip("`")
                     k.strip("-")
                     k.strip(" – ")
+                    k.strip("”")
 
                     if v == "PERSON":
                         if isLegitName(k):
@@ -420,9 +430,8 @@ def markup(input_pdf, DocDictListInstance, ColorDict, debug):
     LineNumbers[input_pdf] = {}
     pageCounter = 0
     doc = fitz.open(input_pdf)
-    listSearchText = []
     for page in doc:
-
+        listSearchText = []
         Y0[input_pdf][page]=set()
         Y1[input_pdf][page]=set()
         LineNumbers[input_pdf][page] = {}
@@ -437,23 +446,29 @@ def markup(input_pdf, DocDictListInstance, ColorDict, debug):
             for k2 in value:
                 SearchText = k2
 
-                # TODO: Manage Number overlapping more accurately
-                if SearchText == "AUSTRALIA":
-                    SearchText = " " + SearchText + " "
-                elif SearchText == "Board":
-                    SearchText = " " + SearchText + " "
-                elif SearchText == "CWS":
-                    SearchText = " " + SearchText + " "
-                elif SearchText.isdigit():
-                    SearchText = " " + SearchText + " "
+                # # TODO: Manage Number overlapping more accurately
+                # if SearchText == "AUSTRALIA":
+                #     SearchText = " " + SearchText + " "
+                # elif SearchText == "Board":
+                #     SearchText = " " + SearchText + " "
+                # elif SearchText == "CWS":
+                #     SearchText = " " + SearchText + " "
+                # elif SearchText.isdigit():
+                #     SearchText = " " + SearchText + " "
+
 
 
                 for lst in value[k2]:
                     if lst[1] == pageCounter:
                         if ColorDict[key][3]:
-                            annotatedata=annotate(input_pdf, page, SearchText, key, "", ColorDict, debug, listSearchText)
-                            page = annotatedata[0]
-                            listSearchText = annotatedata[1]
+                            SearchText = re.sub("\n", "", SearchText)
+                            SearchText = re.sub("  ", " ", SearchText)
+                            if (not (True in [SearchText in i for i in listSearchText])) and \
+                                    (not (True in [i in SearchText for i in listSearchText])):
+                                listSearchText.append(SearchText)
+                                annotatedata=annotate(input_pdf, page, SearchText, key, "", ColorDict, debug)
+                                page = annotatedata
+
 
         LineNumbers[input_pdf][page] = CompileListofLineNumbers(Y0, Y1, input_pdf, page)
     return(doc)
@@ -481,55 +496,54 @@ def AddYPointstoListofLineNumbers(areas, file, page):
             0
 
 
-def annotate(file:str, page: object, SearchText: str, SearchType:str, sentence:str, ColorDict, debug:bool, listSearchText):
+def annotate(file:str, page: object, SearchText: str, SearchType:str, sentence:str, ColorDict, debug:bool):
 
     Color = ColorDict[SearchType][0]
     annotType = ColorDict[SearchType][1]
     opacity = ColorDict[SearchType][2]
     HighlightThis = ColorDict[SearchType][3]
-    SearchText = re.sub("\n", "", SearchText)
-    if (SearchText not in listSearchText):
-        listSearchText.append(SearchText)
-        areas = page.searchFor(SearchText, quads=False, hit_max = 32)
-    ##TODO: investigate if Newareas is adding value (or even working)
-        newareas = joinAreas(areas, debug)
-        AddYPointstoListofLineNumbers(newareas, file, page)
 
-        if HighlightThis:
-            if annotType == "Highlight":
-                for area in newareas:
-                    try:
-                        annot = page.addHighlightAnnot(area)
-                        annot = setHI(annot, Color, opacity)
-                    except:
-                        ##if debug: print("failed")
-                        0
-            elif annotType == "Underline":
-                for area in newareas:
-                    try:
-                        annot = page.addUnderlineAnnot(area)
-                        annot = setHI(annot, Color, opacity)
-                    except:
-                        ##if debug: print("failed")
-                        0
+    areas = page.searchFor(SearchText, quads=False, hit_max = 32)
+##TODO: investigate if Newareas is adding value (or even working)
+    newareas = joinAreas(areas, debug)
+    AddYPointstoListofLineNumbers(newareas, file, page)
 
-            elif annotType == "Rect":
-                for area in newareas:
-                    try:
-                        annot = page.addRectAnnot(area)
-                        annot = setHI(annot, Color, opacity)
-                    except:
-                        ##if debug: print("failed")
-                        0
-            else:
-                for area in newareas:
-                    try:
-                        annot = page.addSquigglyAnnot(area)
-                        annot = setHI(annot, Color, opacity)
-                    except:
-                        ##if debug: print("failed")
-                        0
-    return(page, listSearchText)
+    if HighlightThis:
+        if annotType == "Highlight":
+            for area in newareas:
+                try:
+                    annot = page.addHighlightAnnot(area)
+                    annot = setHI(annot, Color, opacity)
+                except:
+                    ##if debug: print("failed")
+                    0
+        elif annotType == "Underline":
+            for area in newareas:
+                try:
+                    annot = page.addUnderlineAnnot(area)
+                    annot = setHI(annot, Color, opacity)
+                except:
+                    ##if debug: print("failed")
+                    0
+
+        elif annotType == "Rect":
+            for area in newareas:
+                try:
+                    annot = page.addRectAnnot(area)
+                    annot = setHI(annot, Color, opacity)
+                except:
+                    ##if debug: print("failed")
+                    0
+        else:
+            for area in newareas:
+                try:
+                    annot = page.addSquigglyAnnot(area)
+                    annot = setHI(annot, Color, opacity)
+                except:
+                    ##if debug: print("failed")
+                    0
+
+    return(page)
 
 def isAmbiguous(date_time):
     if int(date_time[8:9]) < 13 and int(date_time[5:6]) < 13:
