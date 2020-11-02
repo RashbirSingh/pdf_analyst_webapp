@@ -4,76 +4,44 @@
 {% block body_block %}
 {% load static %}
 
-<!--Setting in the result page-->
-<div id="mySidebartworesult" class="sidebartworesult">
-  <a href="javascript:void(0)" class="closebtn" style="padding-top: 80px;" onclick="closeNavtworesult()">&#9747;</a>
-    <a href="#" style="padding-top: 80px;"> </a>
-          <hr style="border-top: 1px dotted #8c8b8b;">
-      <table class="table" style="font-size: 14px; text-align:center;">
-        <thead class="thead-dark">
-        <tr>
-          <th scope="col"> Parameter </th>
-          <th scope="col"> Selection </th>
-        </tr>
-        </thead>
 
-        {% for document in documentslist %}
-      <form action="analysedocument.html" method="POST" class="" enctype="multipart/form-data">
-          {% csrf_token %}
-          <input type="hidden" name="doc" value={{document}}>
-          {% endfor %}
-          <tbody>
-          <tr>
-              <td><a onmouseover="infoP('Filter and find out if the categorised name is valid or not')"
-                     onmouseout="HideinfoP()"
-                     href="#">Filter valid name</a></td>
-              <td><input type="checkbox" name="filtername"></td>
-          </tr>
-          <input type="hidden" name="sortdata" checked>
-          <tr>
-              <td><a onmouseover="infoP('Remove overlapping from the analysis using the priority list from settings')"
-                     onmouseout="HideinfoP()"
-                     href="#">Remove overlapping</a></td>
-              <td><input type="checkbox" name="overlap" onclick="terms_changed(this)"></td>
-          </tr>
-          </tbody>
-      </table>
-
-
-    <hr style="border-top: 1px dotted #8c8b8b;">
-<!--      <table class="table" style="font-size: 14px; text-align:center;">-->
-<!--        <thead class="thead-dark">-->
-<!--        <tr>-->
-<!--          <th scope="col"> Parameter type </th>-->
-<!--          <th scope="col"> Priority </th>-->
-<!--        </tr>-->
-<!--        </thead>-->
-<!--    {% for key in listofkeys %}-->
-<!--    <tbody>-->
-<!--          <tr>-->
-<!--              <td><a href="#">{{key}}</a></td>-->
-<!--              <td><select name="{{key}}" id="{{key}}">-->
-<!--                  <option value="1">1</option>-->
-<!--                  <option value="2">2</option>-->
-<!--                  <option value="3">3</option>-->
-<!--                  <option value="4">4</option>-->
-<!--                  <option value="5">5</option>-->
-<!--                  <option value="6">6</option>-->
-<!--                  <option value="7">7</option>-->
-<!--                  <option value="8">8</option>-->
-<!--                  <option value="9">9</option>-->
-<!--                  <option value="10">10</option>-->
-<!--                  <option value="12">11</option>-->
-<!--                  <option value="12">12</option></select>-->
-<!--              </td>-->
-<!--          </tr>-->
-<!--    {% endfor %}-->
-<!--          </tbody>-->
-<!--      </table>-->
-        <button type="submit" class="btn btn-outline-info" style="width:346px; font-size:18px;"> Apply</button>
-        </form>
+<!--  Settings -->
+<div id="mySidenav" class="sidenav">
+<a href="#" class="openbtn" onclick="openNavtworesult()" style="font-size:20px;
+                                                                    padding-left:45px;
+                                                                    background-color: #A8B4A5;
+                                                                    top: 200px;">
+<img onmouseover="infoP('Select how to view the tree and highlight the PDF(s)')" onmouseout="HideinfoP()"
+     class="zoom" title="Edit the settings" src="/static/icons/gear.png" style="width:48px;height:48px;">
+</a>
 </div>
 
+
+<div id="mySidenav" class="sidenav" style="">
+<a onmouseover="infoP('Expand or Unexpand the analysis result')"
+ onmouseout="HideinfoP()"
+ href="#" class="openbtn clickme" style="left:auto;
+                                         right: -40px;
+                                         font-size:20px;
+                                         padding-right:100px;
+                                         border-radius: 20px 0 0 20px;
+                                         background-color: #D6CBB0;
+                                         top: 120px;">
+      <img class="zoom" src="/static/icons/expand.png" style="width:48px;height:48px;">
+</a>
+</div>
+
+
+<!-- Toolbox -->
+<div id="mySidenav" class="sidenav">
+  <a onmouseover="infoP('Save the analysis into excel format, export PDF or manage highlight')" onmouseout="HideinfoP()"
+     href="#" id="about" class="openbtn" onclick="openNav()" style="font-size:20px;
+                                                                    padding-left:45px;
+                                                                    background-color: #a5a8b4;
+                                                                    top: 120px;">
+      <img class="zoom" title="Export the analysis" src="/static/icons/toolbox.png" style="width:48px;height:48px;"/>
+  </a>
+</div>
 
 <!--Exporting the result toolbox-->
 <div id="mySidebar" class="sidebar" style="width: 350px;">
@@ -157,15 +125,89 @@
 <!--  expand or unexpand all  -->
 
 </div>
+
+
+<!--Setting in the result page-->
+<div id="mySidebartworesult" class="sidebartworesult">
+  <a href="javascript:void(0)" class="closebtn" style="padding-top: 80px;" onclick="closeNavtworesult()">&#9747;</a>
+    <a href="#" style="padding-top: 80px;"> </a>
+          <hr style="border-top: 1px dotted #8c8b8b;">
+      <table class="table" style="font-size: 14px; text-align:center;">
+        <thead class="thead-dark">
+        <tr>
+          <th scope="col"> Parameter </th>
+          <th scope="col"> Selection </th>
+        </tr>
+        </thead>
+
+        {% for document in documentslist %}
+      <form action="analysedocument.html" method="POST" class="" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="doc" value={{document}}>
+          {% endfor %}
+          <tbody>
+          <tr>
+              <td><a onmouseover="infoP('Filter and find out if the categorised name is valid or not')"
+                     onmouseout="HideinfoP()"
+                     href="#">Filter for valid names</a></td>
+              <td><input type="checkbox" name="filtername" checked></td>
+          </tr>
+          <input type="hidden" name="sortdata" checked>
+          <tr>
+              <td><a onmouseover="infoP('Remove overlapping from the analysis using the priority list from settings')"
+                     onmouseout="HideinfoP()"
+                     href="#">Remove overlapping</a></td>
+              <td><input type="checkbox" name="overlap" onclick="terms_changed(this)" checked></td>
+          </tr>
+          </tbody>
+      </table>
+
+
+    <hr style="border-top: 1px dotted #8c8b8b;">
+<!--      <table class="table" style="font-size: 14px; text-align:center;">-->
+<!--        <thead class="thead-dark">-->
+<!--        <tr>-->
+<!--          <th scope="col"> Parameter type </th>-->
+<!--          <th scope="col"> Priority </th>-->
+<!--        </tr>-->
+<!--        </thead>-->
+<!--    {% for key in listofkeys %}-->
+<!--    <tbody>-->
+<!--          <tr>-->
+<!--              <td><a href="#">{{key}}</a></td>-->
+<!--              <td><select name="{{key}}" id="{{key}}">-->
+<!--                  <option value="1">1</option>-->
+<!--                  <option value="2">2</option>-->
+<!--                  <option value="3">3</option>-->
+<!--                  <option value="4">4</option>-->
+<!--                  <option value="5">5</option>-->
+<!--                  <option value="6">6</option>-->
+<!--                  <option value="7">7</option>-->
+<!--                  <option value="8">8</option>-->
+<!--                  <option value="9">9</option>-->
+<!--                  <option value="10">10</option>-->
+<!--                  <option value="12">11</option>-->
+<!--                  <option value="12">12</option></select>-->
+<!--              </td>-->
+<!--          </tr>-->
+<!--    {% endfor %}-->
+<!--          </tbody>-->
+<!--      </table>-->
+        <button type="submit" class="btn btn-outline-info" style="width:346px; font-size:18px;"> Apply</button>
+        </form>
+</div>
+
+
+
       <header id="header" style="margin-left:180px">
       <table style="width:864px;  position: fixed; top: 100px;" class="table table-striped table-hover  table-sm table-bordered" id="floating_header_in_result">
       <thead class="thead-dark" style="font-size:10px; width:100%;">
         <tr>
-          <th scope="col" width="11%"></th>
-          <th scope="col" width="8%">File Name</th>
-          <th scope="col" width="5%">Page</th>
-          <th scope="col" width="4%">Sentence</th>
-          <th scope="col" width="72%">Context</th>
+                <th scope="col" width="11%"></th>
+                <th scope="col" width="45%">File Name</th>
+                <th scope="col" width="3%">Page</th>
+                <th scope="col" width="3%">Sentence</th>
+                <th scope="col" width="70%">Context</th>
         </tr>
       </thead>
       </table>
@@ -177,46 +219,10 @@
 <main>
   <div class="jumbotron" id="main" style="margin-left:180px">
 
-      <!-- Toolbox -->
-      <div id="mySidenav" class="sidenav">
-          <a onmouseover="infoP('Save the analysis into excel format, export PDF or manage highlight')" onmouseout="HideinfoP()"
-             href="#" id="about" class="openbtn" onclick="openNav()" style="font-size:20px;
-                                                                            padding-left:45px;
-                                                                            background-color: #a5a8b4;
-                                                                            top: 120px;">
-              <img class="zoom" title="Export the analysis" src="/static/icons/toolbox.png" style="width:48px;height:48px;"/>
-          </a>
-      </div>
-
-      <!--  Settings -->
-      <div id="mySidenav" class="sidenav">
-      <a href="#" class="openbtn" onclick="openNavtworesult()" style="font-size:20px;
-                                                                            padding-left:45px;
-                                                                            background-color: #A8B4A5;
-                                                                            top: 200px;">
-        <img onmouseover="infoP('Select how to view the tree and highlight the PDF(s)')" onmouseout="HideinfoP()"
-             class="zoom" title="Edit the settings" src="/static/icons/gear.png" style="width:48px;height:48px;">
-      </a>
-      </div>
-
-
-      <div id="mySidenav" class="sidenav" style="">
-      <a onmouseover="infoP('Expand or Unexpand the analysis result')"
-         onmouseout="HideinfoP()"
-         href="#" class="openbtn clickme" style="left:auto;
-                                                 right: -40px;
-                                                 font-size:20px;
-                                                 padding-right:100px;
-                                                 border-radius: 20px 0 0 20px;
-                                                 background-color: #D6CBB0;
-                                                 top: 120px;">
-              <img class="zoom" src="/static/icons/expand.png" style="width:48px;height:48px;">
-      </a>
-      </div>
-
 
 
       <!-- Analysis result tree view -->
+      <h6 style="text-align: center;"> Total {{ NumberOfFiles }} File(s) analysed. <br> Found {{ NumberOfCat }} Categories and {{ NumberOfValues }} of Values.</h6>
     <h4 style="align:center;"> Analysis Result </h4>
      <input type="text" id="myInput" class="clickme" onkeyup="searchFunction()"
      style="width:100%;
@@ -224,6 +230,7 @@
      placeholder="Search for word">
       {% for k, v in resultdict.items %}
       <ul id="myUL">
+
       <li><span  class="caret">{{ k }}</span>
         <ul class="nested firstlist">
           {% for i, j in v.items %}
@@ -231,27 +238,68 @@
             <li class="findings"><span class="caret"  onclick="showhidetableelement()"> {{ i }}</span>
                 <ul style="display:none;">
                     <table style="width:100%" class="table table-striped table-hover  table-sm table-bordered">
-                        {% for data in j %}
+                        {% if k == "PERSON" or k == "ORG"%}
+                        {% for x, y in j.items %}
+                        <table style="width:100%" class="table table-striped table-hover  table-sm table-bordered">
+                        <li class="findings"><span class="caret" onclick="showhidetableelement()"> {{ x }}</span>
+                        {% for data in y %}
                         <tr>
                             <td style="font-size:12px;"
-                                title="Open the document in new tab"
+                                onmouseover="infoP('Open the document in new tab')"
+                                onmouseout="HideinfoP()"
                                 width="10%"
                                 onclick="window.open('media/documents/highlight/{{data.0}}')">
                                 <a href="javascript:void(0)"> {{ data.0 }} </a>
                             </td>
                             <td style="font-size:12px;"
-                                title="open the {{ data.0 }} at page number {{ data.1 }}"
+                                onmouseover="infoP('open the {{ data.0 }} at page number {{ data.1 }}')"
+                                onmouseout="HideinfoP()"
                                 width="5%"%
                                 onclick="window.open('media/documents/highlight/{{data.0}}#page={{data.1}}')">
                                 <a href="javascript:void(0)"> {{ data.1 }} </a>
                             </td>
                             <td style="font-size:12px;"
                                 title="Click to see the {{ i }} in document"
+                                onmouseover="infoP('Click to see the {{ i }} in document')"
+                                onmouseout="HideinfoP()"
+                                width="5%" onclick="text.html">
+                                <a href="highlightreview?filepath=media/documents/{{ data.0 }}&page={{ data.1 }}&word={{ i }} " target="_blank">{{ data.2 }}</a></td>
+                            <td style="font-size:12px;" width="80%">{{ data.3 }}</td>
+
+                        </tr>
+                        {% endfor %}
+                            </li>
+                        </table>
+                         {% endfor %}
+
+
+                        {% else %}
+                        {% for data in j %}
+                        <tr>
+                            <td style="font-size:12px;"
+                                onmouseover="infoP('Open the document in new tab')"
+                                onmouseout="HideinfoP()"
+                                width="10%"
+                                onclick="window.open('media/documents/highlight/{{data.0}}')">
+                                <a href="javascript:void(0)"> {{ data.0 }} </a>
+                            </td>
+                            <td style="font-size:12px;"
+                                onmouseover="infoP('open the {{ data.0 }} at page number {{ data.1 }}')"
+                                onmouseout="HideinfoP()"
+                                width="5%"%
+                                onclick="window.open('media/documents/highlight/{{data.0}}#page={{data.1}}')">
+                                <a href="javascript:void(0)"> {{ data.1 }} </a>
+                            </td>
+                            <td style="font-size:12px;"
+                                title="Click to see the {{ i }} in document"
+                                onmouseover="infoP('Click to see the {{ i }} in document')"
+                                onmouseout="HideinfoP()"
                                 width="5%" onclick="text.html">
                                 <a href="highlightreview?filepath=media/documents/{{ data.0 }}&page={{ data.1 }}&word={{ i }} " target="_blank">{{ data.2 }}</a></td>
                             <td style="font-size:12px;" width="80%">{{ data.3 }}</td>
                         </tr>
                         {% endfor %}
+                        {% endif %}
               </table>
             </ul>
           {% endfor %}
@@ -287,13 +335,6 @@ function searchFunction() {
 }
 </script>
 
-<!--<script>-->
-
-<!--    function updateinformation(update) {-->
-<!--  document.getElementById("informationupdate").innerHTML = "Testing";-->
-<!--}-->
-
-<!--</script>-->
 {% endblock %}
 
 

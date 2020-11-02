@@ -42,12 +42,12 @@ def inn(str1, str2, debug):
         else:
             return inn (str1short, str2, False)
     else:
-        if str1.casefold() in str2.casefold() and str1.casefold() != str2.casefold() :
+        if str1.casefold() in str2.casefold().split() and str1.casefold() != str2.casefold().split():
 ##            if debug: print("Test1 true")
             return True
     ##        The following code not working correctly - designed to handle titular cases.
 
-        elif all((item.casefold() in str2.casefold() and item.casefold() != str2.casefold() and str1.casefold() != str2.casefold()) for item in str1list):
+        elif all((item.casefold() in str2.casefold().split() and item.casefold() != str2.casefold().split() and str1.casefold() != str2.casefold()) for item in str1list):
 ##            if debug: print("Test2 true")
             return True
         else:
@@ -89,13 +89,3 @@ def arrangeAliases(dict1, debug):
             if debug: print("newPersonDict:",newPersonDict)
 ##    if debug: print("output",dict1)
     return(dict1)
-
-if __name__ == "__main__":
-    
-    if debug:
-        print("input:")
-        pprint(dict1)
-    newDict = arrangeAliases(dict1, debug)
-    if debug:
-        print("output:")
-        pprint(newDict)

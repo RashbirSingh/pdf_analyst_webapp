@@ -5,31 +5,15 @@ ColorDict = {}
 # Parse: Color tuple, KEY, Style, Opacity, CheckVar)
 ColorDict["Grey"] = ((0.5,0.5,0.5), "WORD", "Highlight", 0.25, 0)
 ColorDict["Black"] = ((1.0,1.0,1.0), "REDACTED", "Highlight", 0.25, 1)
-ColorDict["Red"] = ((1,0,0), "NEGATIVE_POINT", "Highlight", 0.25, 1)
+ColorDict["Red"] = ((1,0,0), "CRITICAL_POINT", "Highlight", 0.25, 1)
 ColorDict["Orange"] = ((1,0.5,0), "KEY_POINT", "Highlight", 0.25, 1)
 ColorDict["Yellow"] = ((1,1,0), "HIGHLIGHT", "Highlight", 0.25, 1)
 ColorDict["Green"] = ((0.5,1,0), "DATE", "Highlight", 0.25, 1)
-
-ColorDict["AdobeDkGreen"] = ((0,0.6,0), "Unused1", "Highlight", 0.25, 1)
-ColorDict["AdobeLtGreen"] = ((0,1,0.4), "Unused2", "Highlight", 0.25, 1)
-ColorDict["AdobeDkBlue"] = ((0,0.2, 1), "Unused3", "Highlight", 0.25, 1)
-ColorDict["AdobePurple"] = ((0.6,0, 1), "Unused4", "Highlight", 0.25, 1)
-ColorDict["AdobeDkGrey"] = ((0.6,0.6, 0.6), "Unused5", "Highlight", 0.25, 1)
-
-ColorDict["MS_Yellow"] = ((1,0.9,0), "Unused6", "Highlight", 0.25, 1)
-##[1.0, 0.901960015296936, 0.0]
-ColorDict["MS_LtGreen"] = ((0.1,0.9, 0.0), "Unused8", "Highlight", 0.25, 1)
-##[0.1490200012922287, 0.901960015296936, 0.0]
-ColorDict["MS_Cyan"] = ((0.3,0.8,1), "Unused7", "Highlight", 0.25, 1)
-##[0.26666998863220215, 0.784309983253479, 0.9607800245285034]
-ColorDict["MS_Pink"] = ((0.9,0, 0.6), "Unused9", "Highlight", 0.25, 1)
-##[0.9254900217056274, 0.0, 0.549019992351532]
 
 ColorDict["Lime"] = ((0,1,0), "POSITIVE_POINT", "Highlight", 0.25, 1)
 ColorDict["Aqua"] = ((0,1,0.5), "TIME", "Highlight", 0.25, 1)
 ColorDict["Cyan"] = ((0,1,1), "PERSON", "Highlight", 0.25, 1)
 ColorDict["Mid_Blue"] = ((0.2,0.7,1), "ORG", "Highlight", 0.25, 1)
-ColorDict["Dark_Blue"] = ((0,0,1), "Unused10", "Highlight", 0.25, 1)
 ColorDict["Purple"] = ((0.6,0.3,1), "PHONE", "Highlight", 0.25, 1)
 ColorDict["Magenta"] = ((1,0,1), "EMAIL", "Highlight", 0.25, 1)
 ColorDict["HotPink"] = ((1,0,0.5), "ADDRESS", "Highlight", 0.25, 1)
@@ -39,6 +23,24 @@ ColorDict["Salmon"] = ((1,0.6,0.6), "BARCODE", "Highlight", 0.25, 1)
 ColorDict["PalePink"] = ((1,0.8,0.8), "NUMBER", "Highlight", 0.25, 1)
 ColorDict["Light_Purple"] = ((0.8,0.6,1), "QUOTE", "Highlight", 0.25, 1)
 ColorDict["LtYellow"] = ((1,1,0.6), "MONEY", "Highlight", 0.25, 1)
+
+
+ColorDict["EdgeYellow"] = ((1.0, 0.94, 0.40), "Manual01", "Highlight", 0.25, 1)
+ColorDict["Tan"] = ((0.82,0.7,0.54), "CASENAME", "Highlight", 0.25, 1)
+ColorDict["EdgeGreen"] = ((0.49,0.94,0.40), "Manual02", "Highlight", 0.25, 1)
+ColorDict["Dark_Green"] = ((0,0.39,0), "CITATION", "Highlight", 0.25, 1)
+ColorDict["EdgeBlue"] = ((0.56,0.87,0.98), "Manual03", "Highlight", 0.25, 1)
+ColorDict["Light_Salmon"] = ((1,0.6,0.47), "INSTRUMENT", "Highlight", 0.25, 1)
+ColorDict["EdgePink"] = ((0.97,0.6,0.82), "Manual04", "Highlight", 0.25, 1)
+ColorDict["Tomato"] = ((1,0.3,0.27), "PROVISION", "Highlight", 0.25, 1)
+ColorDict["EdgeRed"] = ((0.92, 0.29,0.29), "Manual05", "Highlight", 0.25, 1)
+ColorDict["Light_Coral"] = ((0.9,0.5,0.5), "COURT", "Highlight", 0.25, 1)
+ColorDict["AdobeDkGreen"] = ((0,0.6,0), "Manual1", "Highlight", 0.25, 1)
+ColorDict["AdobeLtGreen"] = ((0,1,0.4), "Manual2", "Highlight", 0.25, 1)
+ColorDict["AdobeDkBlue"] = ((0,0.2, 1), "Manual3", "Highlight", 0.25, 1)
+ColorDict["AdobePurple"] = ((0.6,0, 1), "Manual4", "Highlight", 0.25, 1)
+ColorDict["AdobeDkGrey"] = ((0.6,0.6, 0.6), "Manual5", "Highlight", 0.25, 1)
+
 # -----------------
 ColorDict["Amethyst"] = ((0.6,0.4,0.8), "JUDGE", "Highlight", 0.25, 1)
 ColorDict["Tan"] = ((0.82,0.7,0.54), "CASENAME", "Highlight", 0.25, 1)

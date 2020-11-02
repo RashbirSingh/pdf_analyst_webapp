@@ -14,13 +14,12 @@ import pandas as pd
 
 from Modules.PreBuildUpdated.source.HiLightModular20200602 import *
 from Modules.PreBuildUpdated.source.HiColors import *
-from arrangeAliases6b import arrangeAliases
+from Modules.PreBuildUpdated.source.arrangeAliases6b import arrangeAliases
 ##arrangeAliases6 flattens the tree, causes other issues
 ## arrangeAliases7 tries to solve for honorifics..
 
 
 #Test these imports - are they used?
-import  PySimpleGUI as sg
 from itertools import groupby
 from ast import literal_eval
 from operator import itemgetter

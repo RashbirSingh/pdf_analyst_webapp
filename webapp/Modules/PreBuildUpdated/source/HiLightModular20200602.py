@@ -2,14 +2,20 @@
 from __future__ import unicode_literals, print_function
 import json
 import fitz
-import regex
 import inspect
 import spacy
 import xlsxwriter
 import datetime
 import dateparser
 import os
+import regex
 import re
+import probablepeople as pp
+import itertools
+from PyPDF2 import PdfFileReader
+import time
+from multiprocessing import Process
+import random
 from pprint import pprint
 
 #Need to update this to link to the correct colorsDict
@@ -27,8 +33,8 @@ from celery_progress.backend import ProgressRecorder
 
 now = datetime.datetime.now()
 nlp = spacy.load("en_blackstone_proto")
+# nlp2 = spacy.load("en_core_web_lg")
 nlp2 = spacy.load("en_core_web_sm")
-# nlp = spacy.load("en_core_web_sm")
 # nlp = en_core_web_sm.load()
 
 ## Preferences
@@ -62,15 +68,27 @@ Y1 = {}
 LineNumbers = {}
 
 
+
 patternRegexSimpleDate = regex.compile(regexSimpleDate)
 
 for key in regexGeneric:
     regexGeneric[key] = regex.compile(regexGeneric[key],regex.MULTILINE)
+    # regexGeneric[key] = regexGeneric[key]
+
+def common(a, b):
+    str1_words = set(a.split())
+    str2_words = set(b.split())
+
+    if str1_words & str2_words:
+        return True
+    else:
+        return False
 
 @shared_task(bind=True)
-def Highlight_Analyse(self, lst, ColorDict, savePDF, saveExcel, saveExcelUVO, label, debug):
+def Highlight_Analyse(self, lst, ColorDict, savePDF, saveExcel, saveExcelUVO, label, debug, filtername,
+                      overlap, prioritydict):
     global LineNumbers
-    import time
+
     d = {}
     DocDict = {}
     DocDictList = {}
@@ -80,11 +98,19 @@ def Highlight_Analyse(self, lst, ColorDict, savePDF, saveExcel, saveExcelUVO, la
     progress_recorder = ProgressRecorder(self)
 
     i = 0
+    pagecount = 0
+    for input_pdf in lst:
+        pdf = PdfFileReader(open(input_pdf, 'rb'))
+        pagecount += pagecount + pdf.getNumPages()
 
     for input_pdf in lst:
 
+
         filename = "".join(os.path.split(input_pdf)[1])
-        progress_recorder.set_progress(i, len(lst), f'processing PDF {input_pdf.split("/")[-1]}')
+        for input_count in range(pagecount):
+            # progress_recorder.set_progress(i, pagecount, f'processing PDF {input_pdf.split("/")[-1]}')
+            time.sleep(random.uniform(0, 1.5))
+            progress_recorder.set_progress(input_count, pagecount, f'processing page {input_count + 1}')
         i = i + 1
 
         pdl = PDF2DictList(input_pdf)
@@ -94,20 +120,15 @@ def Highlight_Analyse(self, lst, ColorDict, savePDF, saveExcel, saveExcelUVO, la
         for k, v in list(pdl2[0][0].items()):
             if (k == "INSTRUMENT") or (k == "PROVISION"):
                 if "LAW" in pdl2[0][0].keys():
-                    pdl2[0][0][re.sub("the ", "", [k])] = pdl2[0][0].pop(k)
-                    k = re.sub("the ", "", [k])
                     pdl2[0][0]["LAW"].update(pdl2[0][0][k])
                     pdl2[0][0].pop(k)
-                    for key, v in pdl2[0][0]["LAW"].items():
-                        pdl2[0][0]["LAW"][re.sub('the ', "", key.lower())] = pdl2[0][0]["LAW"].pop(key)
-                        print(pdl2[0][0]["LAW"][key])
 
                 else:
                     pdl2[0][0]["LAW"] = pdl2[0][0][k]
                     pdl2[0][0].pop(k)
-                    for key, v in pdl2[0][0]["LAW"].items():
-                        pdl2[0][0]["LAW"][re.sub('the ', "", key.lower())] = pdl2[0][0]["LAW"].pop(key)
-                        print(pdl2[0][0]["LAW"][key])
+
+
+
             # if (k == "NUMBER"):
             #     for Numberkey, Numbervalue in pdl2[0][0]["NUMBER"].items():
             #         print(Numberkey)
@@ -117,8 +138,68 @@ def Highlight_Analyse(self, lst, ColorDict, savePDF, saveExcel, saveExcelUVO, la
         DocDict[input_pdf] = MergeList2Dict(DocDictList[input_pdf], debug)
         d = merge(d, DocDict[input_pdf], strategy=Strategy.ADDITIVE)
 
+        if overlap == 1:  # If user do not want to overlap(Checkbox unticked)
+            for com in itertools.combinations(prioritydict.keys(), 2):
+                if (com[0] in d) & (com[1] in d):
+                    for k in list(d[com[0]].keys()):
+                        for k2 in list(d[com[1]].keys()):
+                            if common(k, k2):
+                                if prioritydict[com[0]] > prioritydict[com[1]]:
+                                    try:
+                                        d[com[0]].pop(k)
+                                    except:
+                                        pass
+                                elif prioritydict[com[0]] < prioritydict[com[1]]:
+                                    try:
+                                        d[com[1]].pop(k2)
+                                    except:
+                                        pass
+                        for k2 in list(d[com[0]].keys()):
+                            if common(k, k2):
+                                if prioritydict[com[0]] > prioritydict[com[1]]:
+                                    try:
+                                        d[com[0]].pop(k)
+                                    except:
+                                        pass
+                                elif prioritydict[com[0]] < prioritydict[com[1]]:
+                                    try:
+                                        d[com[1]].pop(k2)
+                                    except:
+                                        pass
+
+        if filtername == 1:  # Checking if filtername is set to true
+            if "PERSON" in d.keys():
+                for name, v in list(d["PERSON"].items()):
+                # for name in list(d[key]):
+                    if re.sub(" ", "", name).isalpha() == False:
+                        d["PERSON"].pop(name)
+                    elif pp.tag(name)[1] != 'Person':
+                        d["PERSON"].pop(name)
+                    elif len(name) < 4:
+                        d["PERSON"].pop(name)
+
+        if "LAW" in d.keys():
+            for key, v in list(d["LAW"].items()):
+                print(key)
+                if 'the ' in key:
+                    d["LAW"][re.sub('the ', "", key)] = d["LAW"].pop(key)
+                    continue
+                if 'The ' in key:
+                    d["LAW"][re.sub('The ', "", key)] = d["LAW"].pop(key)
+                    continue
+
+            for key, v in list(d["LAW"].items()):
+                d["LAW"][key.strip()] = d["LAW"].pop(key)
+
+        if "ORG" in d.keys():
+            for key, v in list(d["ORG"].items()):
+                if "'s" in key:
+                    d["LAW"][re.sub("'s", "", key)] = d["ORG"].pop(key)
+
+
+
         if savePDF:
-            
+
             doc = markup(input_pdf,DocDictList[input_pdf], ColorDict, debug)
             saveDocToPDF(doc,input_pdf,"output", timestr, debug)
 
@@ -131,6 +212,12 @@ def Highlight_Analyse(self, lst, ColorDict, savePDF, saveExcel, saveExcelUVO, la
         saveDict2ExcelUniqueValsOnly(d, lst[0], timestr, debug)
 
     return [d, DocDict, DocDictList, textSentencesDict, LineNumbers]
+
+
+    return analysisList
+
+
+
 
 def isAcronym(n:str):
     if len(n)>3 and all(i.isupper() for i in n):
@@ -161,7 +248,7 @@ def isLegitName(n:str):
     else: return True
 
 def PDF2DictList(input_pdf):
-    global SpaCyList, LabelsList, regexGeneric, regexSimpleDate
+    global SpaCyList, LabelsList, regexGeneric, regexSimpleDate, pageCounter
     filename = "".join(os.path.split(input_pdf)[1])
     print(filename)
     doc = fitz.open(input_pdf)
@@ -194,11 +281,24 @@ def PDF2DictList(input_pdf):
                     SentenceDict[v] = SentenceDict.get(v, [])
 
                     k.replace('\n','').replace('\u00b7','')
+                    k.replace("-", "")
+                    k.strip()
+                    k.strip(" ")
+                    k.strip("'s")
+                    k.strip("'")
+                    k.strip("`")
+                    k.strip("-")
+                    k.strip(" – ")
 
                     if v == "PERSON":
                         if isLegitName(k):
                             k.strip("'s")
                             k.strip("'")
+                            k.strip("`")
+                            k.strip("-")
+                            k.strip(" ")
+
+
                     newDict = {k:[(filename, pageCounter, sentenceCounter, str(sentence), input_pdf)]}
 
                     SentenceDict[v]=newDict
@@ -210,7 +310,7 @@ def PDF2DictList(input_pdf):
                     regexGenericSentenceDict[SearchType] = regexGenericSentenceDict.get(SearchType, [])
                     for match in matchlist:
                         match.replace('\n','').replace('\u00b7','')
-                        
+
                         newDict[match] = [(filename,pageCounter, sentenceCounter, str(sentence), input_pdf)]
 
                     regexGenericSentenceDict[SearchType] = newDict
@@ -218,7 +318,7 @@ def PDF2DictList(input_pdf):
             merge(SentenceDict, regexGenericSentenceDict, strategy=Strategy.ADDITIVE)
             merge(PageDict, SentenceDict, strategy=Strategy.ADDITIVE)
 
-        DocDictList.append(PageDict)       
+        DocDictList.append(PageDict)
 
     return (DocDictList, textSentencesDict)
 
@@ -254,11 +354,22 @@ def PDF2DictList2(input_pdf):
                     SentenceDict[v] = SentenceDict.get(v, [])
 
                     k.replace('\n', '').replace('\u00b7', '')
+                    k.strip()
+                    k.strip(" ")
+                    k.strip("'s")
+                    k.strip("'")
+                    k.strip("`")
+                    k.strip("-")
+                    k.strip(" – ")
 
                     if v == "PERSON":
                         if isLegitName(k):
                             k.strip("'s")
                             k.strip("'")
+                            k.strip("`")
+                            k.strip("-")
+                            k.strip(" ")
+
                     newDict = {k: [(filename, pageCounter, sentenceCounter, str(sentence), input_pdf)]}
 
                     SentenceDict[v] = newDict
@@ -308,8 +419,8 @@ def markup(input_pdf, DocDictListInstance, ColorDict, debug):
     Y1[input_pdf]={}
     LineNumbers[input_pdf] = {}
     pageCounter = 0
-
     doc = fitz.open(input_pdf)
+    listSearchText = []
     for page in doc:
 
         Y0[input_pdf][page]=set()
@@ -323,17 +434,26 @@ def markup(input_pdf, DocDictListInstance, ColorDict, debug):
 
         for key, value in DocDictListInstance[pageCounter-1].items():
 
-
             for k2 in value:
                 SearchText = k2
+
                 # TODO: Manage Number overlapping more accurately
-                if SearchText.isdigit():
+                if SearchText == "AUSTRALIA":
                     SearchText = " " + SearchText + " "
+                elif SearchText == "Board":
+                    SearchText = " " + SearchText + " "
+                elif SearchText == "CWS":
+                    SearchText = " " + SearchText + " "
+                elif SearchText.isdigit():
+                    SearchText = " " + SearchText + " "
+
+
                 for lst in value[k2]:
-
                     if lst[1] == pageCounter:
-
-                        if ColorDict[key][3]: page=annotate(input_pdf, page, SearchText, key, "", ColorDict, debug)
+                        if ColorDict[key][3]:
+                            annotatedata=annotate(input_pdf, page, SearchText, key, "", ColorDict, debug, listSearchText)
+                            page = annotatedata[0]
+                            listSearchText = annotatedata[1]
 
         LineNumbers[input_pdf][page] = CompileListofLineNumbers(Y0, Y1, input_pdf, page)
     return(doc)
@@ -360,53 +480,56 @@ def AddYPointstoListofLineNumbers(areas, file, page):
         except:
             0
 
-def annotate(file:str, page: object, SearchText: str, SearchType:str, sentence:str, ColorDict, debug:bool):
+
+def annotate(file:str, page: object, SearchText: str, SearchType:str, sentence:str, ColorDict, debug:bool, listSearchText):
 
     Color = ColorDict[SearchType][0]
     annotType = ColorDict[SearchType][1]
     opacity = ColorDict[SearchType][2]
     HighlightThis = ColorDict[SearchType][3]
-    # SearchText = " " + SearchText + " "
-    areas = page.searchFor(SearchText, quads=False, hit_max = 32)
-##TODO: investigate if Newareas is adding value (or even working)
-    newareas = joinAreas(areas, debug)
-    AddYPointstoListofLineNumbers(newareas, file, page)
-    
-    if HighlightThis:
-        if annotType == "Highlight":
-            for area in newareas:
-                try:
-                    annot = page.addHighlightAnnot(area)
-                    annot = setHI(annot, Color, opacity)
-                except:
-                    ##if debug: print("failed")
-                    0
-        elif annotType == "Underline":
-            for area in newareas:
-                try:
-                    annot = page.addUnderlineAnnot(area)
-                    annot = setHI(annot, Color, opacity)
-                except:
-                    ##if debug: print("failed")
-                    0
+    SearchText = re.sub("\n", "", SearchText)
+    if (SearchText not in listSearchText):
+        listSearchText.append(SearchText)
+        areas = page.searchFor(SearchText, quads=False, hit_max = 32)
+    ##TODO: investigate if Newareas is adding value (or even working)
+        newareas = joinAreas(areas, debug)
+        AddYPointstoListofLineNumbers(newareas, file, page)
 
-        elif annotType == "Rect":
-            for area in newareas:
-                try:
-                    annot = page.addRectAnnot(area)
-                    annot = setHI(annot, Color, opacity)
-                except:
-                    ##if debug: print("failed")
-                    0
-        else:
-            for area in newareas:
-                try:
-                    annot = page.addSquigglyAnnot(area)
-                    annot = setHI(annot, Color, opacity)
-                except:
-                    ##if debug: print("failed")
-                    0
-    return(page)      
+        if HighlightThis:
+            if annotType == "Highlight":
+                for area in newareas:
+                    try:
+                        annot = page.addHighlightAnnot(area)
+                        annot = setHI(annot, Color, opacity)
+                    except:
+                        ##if debug: print("failed")
+                        0
+            elif annotType == "Underline":
+                for area in newareas:
+                    try:
+                        annot = page.addUnderlineAnnot(area)
+                        annot = setHI(annot, Color, opacity)
+                    except:
+                        ##if debug: print("failed")
+                        0
+
+            elif annotType == "Rect":
+                for area in newareas:
+                    try:
+                        annot = page.addRectAnnot(area)
+                        annot = setHI(annot, Color, opacity)
+                    except:
+                        ##if debug: print("failed")
+                        0
+            else:
+                for area in newareas:
+                    try:
+                        annot = page.addSquigglyAnnot(area)
+                        annot = setHI(annot, Color, opacity)
+                    except:
+                        ##if debug: print("failed")
+                        0
+    return(page, listSearchText)
 
 def isAmbiguous(date_time):
     if int(date_time[8:9]) < 13 and int(date_time[5:6]) < 13:

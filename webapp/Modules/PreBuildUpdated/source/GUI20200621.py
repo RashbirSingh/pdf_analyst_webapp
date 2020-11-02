@@ -61,28 +61,28 @@ radioVar = {}
 
 
 
-def analyse_file(eff=None, listbox=object, listbox2=object, label=object, label2=object, label3=object, label4=object,
-                 tree=object, root=object, scalePage=object, button=object, button2=object):
-    global file, docs, results, debug, file_list, file_sel_list, d, DocDict, DocDictList, textSentencesDict, InvColorDictLabelstoColors
-    lst = []
-
-    sel = listbox.curselection()
-    for i in sel:
-        lst.append(file_list[i])
-
-    label3.config(text="Analysing " + str(lst))
-    if not tuple(lst) in results:
-        results[tuple(lst)] = Highlight_Analyse(lst, InvColorDictLabelstoColors, False, False, False, label3, False)
-    d = results[tuple(lst)][0]
-    DocDict = results[tuple(lst)][1]
-    DocDictList = results[tuple(lst)][2]
-    textSentencesDict = results[tuple(lst)][3]
-
-    file_sel_list = lst
-    return {'d': d,
-            'DocDict': DocDict,
-            'DocDictList': DocDictList,
-            'textSentencesDict': textSentencesDict}
+# def analyse_file(eff=None, listbox=object, listbox2=object, label=object, label2=object, label3=object, label4=object,
+#                  tree=object, root=object, scalePage=object, button=object, button2=object):
+#     global file, docs, results, debug, file_list, file_sel_list, d, DocDict, DocDictList, textSentencesDict, InvColorDictLabelstoColors
+#     lst = []
+#
+#     sel = listbox.curselection()
+#     for i in sel:
+#         lst.append(file_list[i])
+#
+#     label3.config(text="Analysing " + str(lst))
+#     if not tuple(lst) in results:
+#         results[tuple(lst)] = Highlight_Analyse(lst, InvColorDictLabelstoColors, False, False, False, label3, False)
+#     d = results[tuple(lst)][0]
+#     DocDict = results[tuple(lst)][1]
+#     DocDictList = results[tuple(lst)][2]
+#     textSentencesDict = results[tuple(lst)][3]
+#
+#     file_sel_list = lst
+#     return {'d': d,
+#             'DocDict': DocDict,
+#             'DocDictList': DocDictList,
+#             'textSentencesDict': textSentencesDict}
 
 
 def ExportDicttoExcelUVO(eff=None, label=object):
@@ -112,28 +112,48 @@ def ExporttoPDF(overlap, prioritydict):
     for file in file_sel_list:
         d2 = results[tuple(file_sel_list)][2]
 
-        if overlap == 0:
+        if overlap == 1:
 #### REMOVE OVERLAPPING HIGHLIGHTS
             for pageno in range(len(d2[file])):
                 for com in itertools.combinations(prioritydict.keys(), 2):
                     if (com[0] in d2[file][pageno]) and (com[1] in d2[file][pageno]):
                         for k in list(d2[file][pageno][com[0]].keys()):
-                            if k in list(d2[file][pageno][com[1]].keys()):
-                                # noinspection PyPackageRequirements
-                                if prioritydict[com[0]] > prioritydict[com[1]]:
-                                    try: d2[file][pageno][com[0]].pop(k)
-                                    except: pass
-                                elif prioritydict[com[0]] < prioritydict[com[1]]:
-                                    try: d2[file][pageno][com[1]].pop(k)
-                                    except: pass
+                            for k2 in list(d2[file][pageno][com[1]].keys()):
+                                if common(k, k2):
+                                    # noinspection PyPackageRequirements
+                                    if prioritydict[com[0]] > prioritydict[com[1]]:
+                                        try: d2[file][pageno][com[0]].pop(k)
+                                        except: pass
+                                    elif prioritydict[com[0]] < prioritydict[com[1]]:
+                                        try: d2[file][pageno][com[1]].pop(k2)
+                                        except: pass
 
-                            if k in list(d2[file][pageno][com[0]].keys()):
-                                if prioritydict[com[0]] > prioritydict[com[1]]:
-                                    try: d2[file][pageno][com[0]].pop(k)
-                                    except: pass
-                                elif prioritydict[com[0]] < prioritydict[com[1]]:
-                                    try: d2[file][pageno][com[1]].pop(k)
-                                    except: pass
+                            for k2 in list(d2[file][pageno][com[0]].keys()):
+                                if common(k, k2):
+                                        if prioritydict[com[0]] > prioritydict[com[1]]:
+                                            try: d2[file][pageno][com[0]].pop(k)
+                                            except: pass
+                                        elif prioritydict[com[0]] < prioritydict[com[1]]:
+                                            try: d2[file][pageno][com[1]].pop(k2)
+                                            except: pass
+
+                        # for k in list(d2[file][pageno][com[1]].keys()):
+                        #     if k in list(d2[file][pageno][com[0]].keys()):
+                        #         # noinspection PyPackageRequirements
+                        #         if prioritydict[com[0]] > prioritydict[com[1]]:
+                        #             try: d2[file][pageno][com[0]].pop(k)
+                        #             except: pass
+                        #         elif prioritydict[com[0]] < prioritydict[com[1]]:
+                        #             try: d2[file][pageno][com[1]].pop(k)
+                        #             except: pass
+                        #
+                        #     if k in list(d2[file][pageno][com[1]].keys()):
+                        #         if prioritydict[com[0]] > prioritydict[com[1]]:
+                        #             try: d2[file][pageno][com[0]].pop(k)
+                        #             except: pass
+                        #         elif prioritydict[com[0]] < prioritydict[com[1]]:
+                        #             try: d2[file][pageno][com[1]].pop(k)
+                        #             except: pass
 
         p0 = os.path.split(file)[0]
         p1 = os.path.split(file)[1]
@@ -270,25 +290,37 @@ def pdfannot2df(input_pdf, outputFileName, debug):
     context = ""
     contentDict = {}
     for ixpage, page in enumerate(pdf):
-        tmp = {'page': ixpage + 1, 'pdf_path': input_pdf, 'page_width': page.rect[2], 'page_height': page.rect[3]}
+        print(page)
+        tmp = {'Page': ixpage + 1, 'File': input_pdf}
+        ##        tmp = {'page': ixpage + 1, 'pdf_path': input_pdf, 'page_width': page.rect[2], 'page_height': page.rect[3]}
         words = page.getTextWords()
         annot = page.firstAnnot
-
+        print('annot : ', annot) if debug else 0
+        print('page : ', ixpage) if debug else 0
         while annot:
+            print('type annot : ', annot.type[1]) if debug else 0
             mywords = []
             date1, date2, content, context = "", "", "", ""
 
             if annot.type[1] == 'Highlight':
                 mywords, annot = _extract_word_from_highlight(annot, words)
 
-            # need to build functionality here that would concatenate results from closely adjacent annotations of the same type - trouble is that 'closely adjacent' will depend on the text size
+            elif annot.type[1] == 'Squiggly':
+                mywords, annot = _extract_word_from_highlight(annot, words)
+
+            elif annot.type[1] == 'Underline':
+                mywords, annot = _extract_word_from_highlight(annot, words)
 
             elif annot.type[1] == 'Square':
-                mywords = [w for w in words if
-                           annot.rect.intersect(fitz.Rect(w[:4])).getRectArea() / fitz.Rect(w[:4]).getRectArea() > 0.6]
+                try:
+                    mywords = [w for w in words if fitz.Rect(w[:4]).intersects(annot.rect)]
+                except:
+                    mywords = ""
+
+            # helpful to build functionality here that would concatenate results from closely adjacent annotations of the same type - trouble is that 'closely adjacent' will depend on the text size
 
             else:
-                print('encountered an annotation different from "Square" and "Highlights".') if debug else 0
+                print("Encountered an unknown annotation type.") if debug else 0
 
             annot_text = " ".join(w[4] for w in mywords)
 
@@ -299,77 +331,123 @@ def pdfannot2df(input_pdf, outputFileName, debug):
 
             # unpack dict in annot.info['content'] field
 
-            content = annot.info['content']
-            print("content: " + content) if debug else 0
-
-            ##            json_acceptable_content = content.replace("'", "\"")
-            ##            contentDict = json.loads(json_acceptable_content)
-
-            if content != "":
-                print("in content loop") if debug else 0
-                try:
-                    contentDict = eval(content)
-                    print("contentDict: ", contentDict) if debug else 0
-                    if contentDict["date"]["values"][0]["type"] == "daterange":
-                        date1 = contentDict["date"]["values"][0]["start"]
-                        date2 = contentDict["date"]["values"][0]["end"]
-                    elif contentDict["date"]["values"][0]["type"] == "date":
-                        date1 = contentDict["date"]["values"][0]["value"]
-                    context = contentDict["context"]
-                except:
-                    print("exception") if debug else 0
-
+            ##            content = annot.info['content']
+            ##
+            ##            print("content: "+content)if debug else 0
+            ##
+            ####            json_acceptable_content = content.replace("'", "\"")
+            ####            contentDict = json.loads(json_acceptable_content)
+            ##
+            ##            if content != "":
+            ##                print ("in content loop")if debug else 0
+            ##                try:
+            ##                    contentDict = eval(content)
+            ##                    print("contentDict: ",contentDict)if debug else 0
+            ##                    if contentDict["date"]["values"][0]["type"] == "daterange":
+            ##                        date1 = contentDict["date"]["values"][0]["start"]
+            ##                        date2 = contentDict["date"]["values"][0]["end"]
+            ##                    elif contentDict["date"]["values"][0]["type"] == "date":
+            ##                        date1 = contentDict["date"]["values"][0]["value"]
+            ##                    context = contentDict["context"]
+            ##                except:
+            ##                    print ("exception")if debug else 0
+            ##
             ##  are there any other types of dates in the MS_Recognizer output?
 
             # get RGB triple of annot color
 
-            try:
-                lst = (round(annot.colors['stroke'][0], 2), round(annot.colors['stroke'][1], 2),
+            lst = (round(annot.colors['stroke'][0], 2), round(annot.colors['stroke'][1], 2),
                    round(annot.colors['stroke'][2], 2))
-            except:
-                lst = 0
+            colorKey = InvColorDicttoLabels[lst]
+            ##            print("colorKey[:6]",colorKey[:6])
+            if colorKey[:6] == "Manual":
+                colorKey = "HIGHLIGHTS"
+            ##            print(lst)
+            ##            print(InvColorDicttoLabels)
+
             # update tmp dictionary
 
             if (lst) in InvColorDicttoLabels:
-                tmp.update({'x': int(annot.rect[0]), 'y': int(annot.rect[1]),
-                            # Those might be wrong for multi line highlights as the rect only
-                            # correspond to the one of the last line
-                            'w': int(annot.rect[2] - annot.rect[0]), 'h': int(annot.rect[3] - annot.rect[1]),
-                            'type': annot.type[1], 'label': annot.info['content'], \
-                            'color': annot.colors['stroke'],
-                            'colorName': InvColorDicttoNames[lst], 'colorKey': InvColorDicttoLabels[lst],
-                            'order': order, 'text': annot_text, 'date1': date1, 'date2': date2, 'context': context})
+                tmp.update({ \
+                    ##                    'x': int(annot.rect[0]), 'y': int(annot.rect[1]),
+                    ##                        # Those might be wrong for multi line highlights as the rect only
+                    ##                        # correspond to the one of the last line
+                    ##                        'w': int(annot.rect[2] - annot.rect[0]), 'h': int(annot.rect[3] - annot.rect[1]),\
+                    'Term': annot_text, \
+                    'Sentence': 0, \
+                    'Context': "", \
+                    'Note': annot.info['content'], \
+                    'Type': annot.type[1], \
+                    'color': lst, \
+                    'Hyperlink': input_pdf,
+
+                    ##                            'color':annot.colors['stroke'],
+                    ##                            'ColorName':InvColorDicttoNames[lst], \
+                    'colorKey': colorKey, \
+                    'order': order, \
+                    ##                            'date1': date1, 'date2': date2, 'context':context\
+                })
             else:
-                tmp.update({'x': int(annot.rect[0]), 'y': int(annot.rect[1]), 'w': int(annot.rect[2] - annot.rect[0]),
-                            'h': int(annot.rect[3] - annot.rect[1]), 'type': annot.type[1], \
-                            'label': annot.info['content'], 'color': annot.colors['stroke'],
-                            'colorName': "Unknown", 'colorKey': "Unknown", 'order': order,
-                            'text': annot_text, 'date1': date1, 'date2': date2, 'context': context})
+                tmp.update({ \
+                    ##                    'x': int(annot.rect[0]), 'y': int(annot.rect[1]),
+                    ##                        # Those might be wrong for multi line highlights as the rect only
+                    ##                        # correspond to the one of the last line
+                    ##                        'w': int(annot.rect[2] - annot.rect[0]), 'h': int(annot.rect[3] - annot.rect[1]),\
+                    'Term': annot_text, \
+                    'Sentence': 0, \
+                    'Context': "", \
+                    'Note': annot.info['content'], \
+                    'Type': annot.type[1], \
+                    'color': lst, \
+                    'Hyperlink': input_pdf,
+
+                    ##                            'color':annot.colors['stroke'],
+                    ##                            'ColorName':"Unknown", \
+                    'colorKey': "Unknown", \
+                    'order': order, \
+                    ##                            'date1': date1, 'date2': date2, 'context':context\
+                })
+            ##                tmp.update({\
+            ##                    'x': int(annot.rect[0]), 'y': int(annot.rect[1]),'w': int(annot.rect[2] - annot.rect[0]), 'h': int(annot.rect[3] - annot.rect[1]),\
+            ##                    'type': annot.type[1], \
+            ##                            'note': annot.info['content'], 'color':annot.colors['stroke'],'colorName':"Unknown", 'colorKey':"Unknown",'order': order, 'text': annot_text, 'date1': date1, 'date2': date2, 'context':context})
+            ##            print (tmp)
             print(tmp) if debug else 0
             l.append(deepcopy(tmp))
-
             annot = annot.next
 
+    print("l is: " + str(l))
     adf = pandas.DataFrame(l)
     print('adf : ', adf) if debug else 0
     successText, failureText, failure2Text = "", "", ""
+
     if adf.empty:
-        print(f'WARNING : the document {input_pdf} does not contain any annotations, the returned dataframe is empty.')
+        print(f'The document {input_pdf} does not contain any annotations.')
         failureText = input_pdf
 
-    elif adf[adf['type'].isnull()].shape[0]:
-        raise Exception(f'Missing {adf[adf["type"].isnull()].shape[0]} type annotation(s) in {input_pdf}')
-        failure2Text = input_pdf
+    ##    elif True:
+    ##        try:
+    ##            boo = adf[adf.get('type').isnull()].shape[0]
+    ##            if adf[adf.get('type').isnull()].shape[0]:
+    ##                raise Exception(f'Missing {adf[adf["type"].isnull()].shape[0]} type annotation(s) in {input_pdf}')
+    ##                failure2Text = input_pdf
+    ##         except:
+    ##            0
 
     else:
-        final_columns = ['order', 'page', 'x', 'y', 'w', 'h', 'type', 'label', 'color', 'colorName', 'colorKey',
-                         'page_height', 'page_width', 'pdf_path', 'text', 'date1', 'date2', 'context']
+
+        ## need to capture and insert line number (or sentence number)
+
+        final_columns = ["Term", "File", "Page", "Sentence", "Context", "Note", "Type", "color", "colorKey",
+                         "Hyperlink"]
+        ##        final_columns = ['page', 'type', 'text', 'note', 'color', 'colorName', 'colorKey', 'date1', 'date2']
+        ##        final_columns = ['order', 'page', 'x', 'y', 'w', 'h', 'type', 'label', 'color', 'colorName', 'colorKey', 'page_height', 'page_width','pdf_path', 'text', 'date1', 'date2', 'context']
         adf = adf[final_columns]
 
         ##Export each group of highlights to a separate sheet
         colorKeys = adf['colorKey'].unique().tolist()
         if debug: print("165")
-        writer = pandas.ExcelWriter("AvaliableHL.xlsx", engine='xlsxwriter')
+        writer = pandas.ExcelWriter(outputFileName, engine='xlsxwriter')
         for color in colorKeys:
             mydf = adf.loc[adf.colorKey == color]
             mydf.to_excel(writer, sheet_name=color)
@@ -381,7 +459,7 @@ def pdfannot2df(input_pdf, outputFileName, debug):
 
 
 @shared_task(bind=True)
-def analyse_file_webapp(self, lst, overlap, prioritydict):
+def analyse_file_webapp(self, lst, filtername, overlap, prioritydict):
     global file, docs, results, debug, file_list, file_sel_list, d, DocDict, DocDictList, textSentencesDict, InvColorDictLabelstoColors
 
 
@@ -394,33 +472,12 @@ def analyse_file_webapp(self, lst, overlap, prioritydict):
             results = {}
             break
     #if not tuple(lst) in results:
-    returndata = Highlight_Analyse.delay(lst, InvColorDictLabelstoColors, False, False, False, False, False)
+    returndata = Highlight_Analyse.delay(lst, InvColorDictLabelstoColors, False, False, False, False, False, filtername,
+                                         overlap, prioritydict)
     # returndata = Highlight_Analyse(lst, InvColorDictLabelstoColors, False, False, False, False, False)
     results[tuple(lst)] = returndata.get()
+
     d = results[tuple(lst)][0]
-
-
-    #### to manage overlapping of highlights
-    if overlap == 0: # If user do not want to overlap(Checkbox unticked)
-        for com in itertools.combinations(prioritydict.keys(), 2):
-            if (com[0] in d) and (com[1] in d):
-                for k in list(d[com[0]].keys()):
-                    if k in list(d[com[1]].keys()):
-                        if prioritydict[com[0]] > prioritydict[com[1]]:
-                            try: d[com[0]].pop(k)
-                            except: pass
-                        elif prioritydict[com[0]] < prioritydict[com[1]]:
-                            try: d[com[1]].pop(k)
-                            except: pass
-
-                    if k in list(d[com[0]].keys()):
-                        if prioritydict[com[0]] > prioritydict[com[1]]:
-                            try: d[com[0]].pop(k)
-                            except: pass
-                        elif prioritydict[com[0]] < prioritydict[com[1]]:
-                            try: d[com[1]].pop(k)
-                            except: pass
-
     DocDict = results[tuple(lst)][1]
     DocDictList = results[tuple(lst)][2]
     textSentencesDict = results[tuple(lst)][3]
@@ -461,13 +518,8 @@ All unique terms are listed in WORD, firstly capitalised terms then non-capitali
     addIntroSheet(workbook, introText, bold, top, wrap, timestr, date_time_format, file_sel_list,exportHyperlinks )
     workbook.close()
 
-@shared_task(bind=True)
-def test(self, lst, InvColorDictLabelstoColors):
-    result = Highlight_Analyse.delay(lst, InvColorDictLabelstoColors, False, False, False, False, False)
-    return result
 
-
-def analyse_file_webapp_shared_task(lst, overlap, prioritydict, task_id):
+def analyse_file_webapp_shared_task(lst, overlap, filtername, prioritydict, task_id):
     global file, docs, results, debug, file_list, file_sel_list, d, DocDict, DocDictList, textSentencesDict, InvColorDictLabelstoColors
 
     for value in prioritydict.values():
@@ -479,26 +531,26 @@ def analyse_file_webapp_shared_task(lst, overlap, prioritydict, task_id):
     d = taskresultdata[0]
 
 
-    #### to manage overlapping of highlights
-    if overlap == 0: # If user do not want to overlap(Checkbox unticked)
-        for com in itertools.combinations(prioritydict.keys(), 2):
-            if com in d:
-                for k in list(d[com[0]].keys()):
-                    if k in list(d[com[1]].keys()):
-                        if prioritydict[com[0]] > prioritydict[com[1]]:
-                            try: d[com[0]].pop(k)
-                            except: pass
-                        elif prioritydict[com[0]] < prioritydict[com[1]]:
-                            try: d[com[1]].pop(k)
-                            except: pass
-
-                    if k in list(d[com[0]].keys()):
-                        if prioritydict[com[0]] > prioritydict[com[1]]:
-                            try: d[com[0]].pop(k)
-                            except: pass
-                        elif prioritydict[com[0]] < prioritydict[com[1]]:
-                            try: d[com[1]].pop(k)
-                            except: pass
+    # #### to manage overlapping of highlights
+    # if overlap == 1: # If user do not want to overlap(Checkbox unticked)
+    #     for com in itertools.combinations(prioritydict.keys(), 2):
+    #         if com in d:
+    #             for k in list(d[com[0]].keys()):
+    #                 if k in list(d[com[1]].keys()):
+    #                     if prioritydict[com[0]] > prioritydict[com[1]]:
+    #                         try: d[com[0]].pop(k)
+    #                         except: pass
+    #                     elif prioritydict[com[0]] < prioritydict[com[1]]:
+    #                         try: d[com[1]].pop(k)
+    #                         except: pass
+    #
+    #                 if k in list(d[com[0]].keys()):
+    #                     if prioritydict[com[0]] > prioritydict[com[1]]:
+    #                         try: d[com[0]].pop(k)
+    #                         except: pass
+    #                     elif prioritydict[com[0]] < prioritydict[com[1]]:
+    #                         try: d[com[1]].pop(k)
+    #                         except: pass
 
     DocDict = results[tuple(lst)][1]
     DocDictList = results[tuple(lst)][2]

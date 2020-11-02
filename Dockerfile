@@ -36,7 +36,9 @@ WORKDIR /var/webapp
 
 RUN Rscript -e "install.packages('lubridate')"
 
-RUN pip3 install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+#pip install package --no-cache-dir
 
 #RUN python -m spacy download en_core_web_sm
 

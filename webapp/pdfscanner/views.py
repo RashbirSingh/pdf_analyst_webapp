@@ -28,6 +28,7 @@ import fitz
 from PyPDF2 import PdfFileReader
 import pandas as pd
 from Modules import BinaryPdfForensics as BPF
+import time
 from celery import shared_task
 from celery_progress.backend import ProgressRecorder
 
@@ -206,18 +207,25 @@ def documentsview(request):
 
 
         ## check if user want highligh overlapping
-        overlap = request.POST.getlist('overlap')
-        if len(overlap) > 0:
-            overlap = checkboxcheck(overlap[0])
+
+        if 'overlap' in request.POST.dict():
+            overlap = 1
+        elif ('overlap' not in request.POST.dict()) and (request.session['overlap'] == 1):
+                overlap = 0
         else:
-            overlap = 0
+            overlap = 1
         request.session['overlap'] = overlap  ## Setting session value for the overlap
 
         ## check if user wants to use valid name detection
+        filtername = 0
+        if 'filtername' in request.session:
+            filtername = request.session['filtername']
         if 'filtername' in request.POST.dict():
-            filtername = checkboxcheck(request.POST.getlist('filtername')[0])
-        else:
+            filtername = 1
+        elif ('filtername' not in request.POST.dict()) and (filtername == 1):
             filtername = 0
+        else:
+            filtername = 1
 
         ## check if user wants sort the data or not
         sortdata = 1
@@ -273,11 +281,10 @@ def documentsview(request):
 
         # resultDict = gui.analyse_file_webapp(absolutedocumentlist, overlap, prioritydict)
         resulttask = gui.Highlight_Analyse.delay(absolutedocumentlist, gui.InvColorDictLabelstoColors, False, False,
-                                                 False, False, False)
+                                                 False, False, False, filtername, overlap, prioritydict)
 
         request.session['sortdata'] = sortdata
         request.session['filtername'] = filtername
-        request.session['overlap'] = overlap
         request.session['prioritydict'] = prioritydict
         request.session['documentslist'] = documentslist
         request.session['absolutedocumentlist'] = absolutedocumentlist
@@ -302,7 +309,8 @@ def analysisresult(request):
         datekeeper = {}
         request.session['datekeeper'] = {}
 
-        resultDict = gui.analyse_file_webapp_shared_task(absolutedocumentlist, overlap, prioritydict, resulttask)
+        resultDict = gui.analyse_file_webapp_shared_task(absolutedocumentlist, overlap, filtername, prioritydict, resulttask)
+        gui.arrangeAliases(resultDict['d'], False)
 
         if sortdata == 1:  # Checking if sortdata is set to true
             resultDict['d'] = dict(sorted(resultDict['d'].items(), key=lambda x: x[0]))
@@ -311,8 +319,18 @@ def analysisresult(request):
                     resultDict['d'][key] = dict(sorted(resultDict['d'][key].items(), key=lambda x: x[0]))
 
                 elif key == 'NUMBER':
+                    for k,v in list(resultDict['d'][key].items()):
+                        if k.count(".") > 1:
+                            resultDict['d'][key].pop(k)
+                            continue
+                        try:
+                            float(k)
+                        except:
+                            resultDict['d'][key].pop(k)
                     resultDict['d'][key] = dict(
-                        sorted(resultDict['d'][key].items(), key=lambda x: float(re.sub('\D+', '', x[0]))))
+                        sorted(resultDict['d'][key].items(), key=lambda x: float(x[0])))
+                        # sorted(resultDict['d'][key].items(), key=lambda x: float(re.sub('\d+.\d+', '', x[0]))))
+                #     .\d+.{1,2}$
 
                 ##TODO: Manage highlighting of date
                 elif key == 'DATE':
@@ -344,23 +362,32 @@ def analysisresult(request):
                         sorted(resultDict['d']['DATE'].items(), key=lambda x: datetime.strptime(x[0], '%d-%m-%Y')))
 
         ## TODO: Move this to backend too
-        if filtername == 1:  # Checking if filtername is set to true
-            for key, value in resultDict['d'].items():
-                if key == 'PERSON':
-                    for name in list(resultDict['d'][key]):
-                        if re.sub(" ", "", name).isalpha() == False:
-                            resultDict['d'][key].pop(name)
-                        elif pp.tag(name)[1] != 'Person':
-                            resultDict['d'][key].pop(name)
-                        elif len(name) < 4:
-                            resultDict['d'][key].pop(name)
+        # if filtername == 1:  # Checking if filtername is set to true
+        #     for key, value in resultDict['d'].items():
+        #         if key == 'PERSON':
+        #             for name in list(resultDict['d'][key]):
+        #                 if re.sub(" ", "", name).isalpha() == False:
+        #                     resultDict['d'][key].pop(name)
+        #                 elif pp.tag(name)[1] != 'Person':
+        #                     resultDict['d'][key].pop(name)
+        #                 elif len(name) < 4:
+        #                     resultDict['d'][key].pop(name)
         gui.ExporttoPDF(overlap, prioritydict)
 
         return render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "analysisresult.html"),
                       {'resultdict': resultDict['d'],
                        'documentslist': documentslist,
-                       'listofkeys': list(resultDict['d'].keys())})
+                       'listofkeys': list(resultDict['d'].keys()),
+                       "NumberOfCat": len(resultDict['d'].keys()),
+                       'NumberOfValues': numberofvalues(resultDict['d']),
+                       'NumberOfFiles': len(absolutedocumentlist)})
 
+def numberofvalues(dicti):
+    i = 0
+    for k in dicti:
+        for ak in dicti[k]:
+            i = i + len(ak)
+    return i
 
 @login_required
 def deletedocument(request, pk):
@@ -398,10 +425,11 @@ def downloadfilemeta(request):
     infodf = infodf.T.reset_index().T
     infodf = infodf.T
     infodf.columns = ['Parameter', 'Value']
+    timestr = time.strftime("%Y%m%d-%H%M%S")
     infodf.to_csv("infodf.csv", index=False)
     with open('infodf.csv') as myfile:
         response = HttpResponse(myfile, content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=infodf.csv'
+        response['Content-Disposition'] = 'attachment; filename=' + path.split("/")[-1] + timestr + '-META' + '.csv'
         return response
 
 
@@ -413,8 +441,9 @@ def pdftoimage(request):
     bpf = BPF.BinaryPdfForensics(path)
     bpf.pdftoimage()
     shutil.make_archive("pdftoimage", 'zip', "pdftoimage")
+    timestr = time.strftime("%Y%m%d-%H%M%S")
     response = HttpResponse(open(settings.BASE_DIR + "/pdftoimage.zip", 'rb'), content_type='application/zip')
-    response['Content-Disposition'] = 'attachment; filename=pdftoimage.zip'
+    response['Content-Disposition'] = 'attachment; filename=' + path.split("/")[-1] + timestr + '-PdfToImage' + '.zip'
     try:
         shutil.rmtree("pdftoimage")
         os.remove("pdftoimage.zip")
@@ -429,9 +458,10 @@ def extractimages(request):
     path = doc.file_field.path
     bpf = BPF.BinaryPdfForensics(path)
     bpf.get_image()
+    timestr = time.strftime("%Y%m%d-%H%M%S")
     shutil.make_archive("extractedImages", 'zip', "extractedImages")
     response = HttpResponse(open(settings.BASE_DIR + "/extractedImages.zip", 'rb'), content_type='application/zip')
-    response['Content-Disposition'] = 'attachment; filename=extractedImages.zip'
+    response['Content-Disposition'] = 'attachment; filename=' + path.split("/")[-1] + timestr + '-ExtractedImages' + '.zip'
     try:
         shutil.rmtree("extractedImages")
         os.remove("extractedImages.zip")
@@ -443,6 +473,9 @@ def extractimages(request):
 @login_required
 def exportdetailstoexcel(request):
     if request.method == 'POST':
+        # timestr = time.strftime("%Y%m%d-%H%M%S")
+        # path = os.path.join(settings.BASE_DIR, 'DetailedExcel'+timestr+'.xlsx')
+        timestr = time.strftime("%Y%m%d-%H%M%S")
         path = os.path.join(settings.BASE_DIR, 'DATA.xlsx')
         try:
             os.remove(path)
@@ -451,17 +484,22 @@ def exportdetailstoexcel(request):
         documentslist = request.POST.getlist('doc')
         absolutedocumentlist = [settings.BASE_DIR + s for s in documentslist]
         overlap = request.session['overlap']
+        filtername = request.session['filtername']
         prioritydict = request.session['prioritydict']
-        resultDict = gui.analyse_file_webapp(absolutedocumentlist, overlap, prioritydict)
+        resultDict = gui.analyse_file_webapp(absolutedocumentlist, filtername, overlap, prioritydict)
         gui.arrangeAliases(resultDict['d'], False)
         gui.ExportDetailstoExcel()
 
+
+        # path = settings.BASE_DIR + "/DetailedExcel"+timestr+".xlsx"
         path = settings.BASE_DIR + "/DATA.xlsx"
         if os.path.exists(path):
             with open(path, "rb") as excel:
                 data = excel.read()
+
         response = HttpResponse(data, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename=DATA.xlsx'
+        # response['Content-Disposition'] = 'attachment; filename=DetailedExcel'+timestr+'.xlsx'
+        response['Content-Disposition'] = 'attachment; filename=DATA'+timestr+'.xlsx'
         try:
             os.remove(path)
         except:
@@ -482,12 +520,20 @@ def exporttopdf(request):
         absolutedocumentlist = [settings.BASE_DIR + s for s in documentslist]
         overlap = request.session['overlap']
         prioritydict = request.session['prioritydict']
-        resultDict = gui.analyse_file_webapp(absolutedocumentlist, overlap, prioritydict)
         gui.InvColorDictLabelstoColors = request.session['InvColorDictLabelstoColors']
         gui.ExporttoPDF(overlap, prioritydict)
 
+        files = os.listdir(path)
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+        for index, file in enumerate(files):
+            os.rename(os.path.join(path, file),
+                  os.path.join(path + "/" + re.sub(".pdf", "", file) + ''.join([timestr, '.pdf'])))
+
         shutil.make_archive("HighlightedPDFs", 'zip', path)
         response = HttpResponse(open(settings.BASE_DIR + "/HighlightedPDFs.zip", 'rb'), content_type='application/zip')
+        for index, file in enumerate(files):
+            os.rename(os.path.join(path, file),
+                  os.path.join(path + "/" + re.sub(timestr, "", file)))
         response['Content-Disposition'] = 'attachment; filename=HighlightedPDFs.zip'
         # try:
         #     shutil.rmtree(path)
@@ -507,8 +553,9 @@ def exportdicttoexceluvo(request):
         documentslist = request.POST.getlist('doc')
         absolutedocumentlist = [settings.BASE_DIR + s for s in documentslist]
         overlap = request.session['overlap']
+        filtername = request.session['filtername']
         prioritydict = request.session['prioritydict']
-        resultDict = gui.analyse_file_webapp(absolutedocumentlist, overlap, prioritydict)
+        resultDict = gui.analyse_file_webapp(absolutedocumentlist, filtername, overlap, prioritydict)
         gui.arrangeAliases(resultDict['d'], False)
         gui.ExportDicttoExcelUVO()
 
@@ -516,8 +563,9 @@ def exportdicttoexceluvo(request):
         if os.path.exists(path):
             with open(path, "rb") as excel:
                 data = excel.read()
+        timestr = time.strftime("%Y%m%d-%H%M%S")
         response = HttpResponse(data, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename=DATAUVO.xlsx'
+        response['Content-Disposition'] = 'attachment; filename=DATAUVO'+timestr+'.xlsx'
         try:
             os.remove(path)
         except:
@@ -540,10 +588,11 @@ def deletehighlights(request):
         prioritydict = request.session['prioritydict']
         # resultDict = gui.analyse_file_webapp(absolutedocumentlist, overlap, prioritydict)
         gui.DeleteHighlights(absolutedocumentlist)
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+        shutil.make_archive("CleanedPDFs"+timestr, 'zip', path)
 
-        shutil.make_archive("CleanedPDFs", 'zip', path)
-        response = HttpResponse(open(settings.BASE_DIR + "/CleanedPDFs.zip", 'rb'), content_type='application/zip')
-        response['Content-Disposition'] = 'attachment; filename=CleanedPDFs.zip'
+        response = HttpResponse(open(settings.BASE_DIR + "/CleanedPDFs"+timestr+".zip", 'rb'), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename=CleanedPDFs'+timestr+'.zip'
         try:
             shutil.rmtree(path)
         except:
@@ -554,7 +603,8 @@ def deletehighlights(request):
 @login_required
 def extracthighlights(request):
     if request.method == 'POST':
-        path = os.path.join(settings.BASE_DIR, 'AvaliableHL.xlsx')
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+        path = os.path.join(settings.BASE_DIR, 'AvaliableHL'+timestr+'.xlsx')
         try:
             os.remove(path)
         except:
@@ -563,14 +613,14 @@ def extracthighlights(request):
         absolutedocumentlist = [settings.BASE_DIR + s for s in documentslist]
         overlap = request.session['overlap']
         prioritydict = request.session['prioritydict']
-        resultDict = gui.analyse_file_webapp(absolutedocumentlist, overlap, prioritydict)
         gui.ExtractHighlights(absolutedocumentlist)
 
         if os.path.exists(path):
             with open(path, "rb") as excel:
                 data = excel.read()
+
         response = HttpResponse(data, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename=AvaliableHL.xlsx'
+        response['Content-Disposition'] = 'attachment; filename=AvaliableHL'+timestr+'.xlsx'
         try:
             os.remove(path)
         except:
@@ -817,6 +867,7 @@ def settingspage(request):
             prioritydict['WORD'] = int(request.POST.getlist('wordprior')[0])
 
             request.session['prioritydict'] = prioritydict  ## Storing the priority list into the request session
+            request.session['overlap'] = 0
 
 
             save_as = request.POST.getlist('save_settings_as')[0]
@@ -857,20 +908,4 @@ def contactus(request):
 
 
 def test(request):
-    results = {}
-    # result = go_to_sleep.delay(1)
-    overlap = request.session['overlap']
-    prioritydict = request.session['prioritydict']
-    lst = ['/Users/rashbir/Desktop/Sidekicker/LaurenceWhite/Webapp/newwebapp/webapp/media/documents/Rules_re_Costs.pdf',
-           '/Users/rashbir/Desktop/Sidekicker/LaurenceWhite/Webapp/newwebapp/webapp/media/documents/Spotwire_No_2_2004_FCA_571.pdf']
-    a = gui.Highlight_Analyse.delay(lst, gui.InvColorDictLabelstoColors, False, False, False, False, False)
-    # a = gui.test(lst, gui.InvColorDictLabelstoColors)
-    # d = a.get()[0]
-
-    if request.method == 'POST':
-        a = request.POST.getlist('a')[0]
-        d = AsyncResult(a).get()[0]
-        return JsonResponse(d['ORG'])
-    return render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "test.html"),
-                  context={'task_id': a.task_id,
-                           'a': a})
+    return render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "test.html"))

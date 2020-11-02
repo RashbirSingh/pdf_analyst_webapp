@@ -8,7 +8,6 @@
 
 {% block body_block %}
 
-
 <p id="Information" style="position: fixed;
           text-align:center;
           top: 400px;
@@ -84,7 +83,8 @@
           <td style="text-align:center;" width="14%"><input type="checkbox" name="doc" value={{document.file_field.url}}></td></input>
           <td style="text-align:center; font-size:14px; white-space: nowrap; overflow: hidden;" width="28%">
 
-            <a onmouseover="infoP('Analyse the selected PDF(s)')" onmouseout="HideinfoP()">
+            <a onmouseover="infoP('Analyse the selected PDF(s)')" onmouseout="HideinfoP()"
+            onclick="numberoffileschecked()">
               <button type="submit" style=" background: none;
                                             color: inherit;
                                             border: none;
@@ -180,4 +180,12 @@ function selectall(source) {
   }
 }
 </script>
+
+<script>
+function numberoffileschecked(source) {
+  alert('Total Number of Files are: ' + document.querySelectorAll('input[type="checkbox"]:checked').length);
+  }
+</script>
+
+
 {% endblock %}
