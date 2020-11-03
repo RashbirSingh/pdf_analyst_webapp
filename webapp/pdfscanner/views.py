@@ -205,6 +205,12 @@ def documentsview(request):
 
     if request.method == 'POST':
 
+        if 'searchtextflag' in request.POST.dict():
+            searchtextflag = True
+            request.session['searchtextflag'] = searchtextflag
+        else:
+            searchtextflag = False
+            request.session['searchtextflag'] = searchtextflag
 
         ## check if user want highligh overlapping
 
@@ -281,7 +287,7 @@ def documentsview(request):
 
         # resultDict = gui.analyse_file_webapp(absolutedocumentlist, overlap, prioritydict)
         resulttask = gui.Highlight_Analyse.delay(absolutedocumentlist, gui.InvColorDictLabelstoColors, False, False,
-                                                 False, False, False, filtername, overlap, prioritydict)
+                                                 False, False, False, filtername, overlap, prioritydict, searchtextflag)
 
         request.session['sortdata'] = sortdata
         request.session['filtername'] = filtername
@@ -372,7 +378,8 @@ def analysisresult(request):
         #                     resultDict['d'][key].pop(name)
         #                 elif len(name) < 4:
         #                     resultDict['d'][key].pop(name)
-        gui.ExporttoPDF(overlap, prioritydict)
+        searchtextflag = request.session['searchtextflag']
+        gui.ExporttoPDF(overlap, prioritydict, searchtextflag)
 
         return render(request, os.path.join(TEMPLATE_DIR_PDFSCANNER, "analysisresult.html"),
                       {'resultdict': resultDict['d'],
@@ -547,7 +554,8 @@ def exporttopdf(request):
         overlap = request.session['overlap']
         prioritydict = request.session['prioritydict']
         gui.InvColorDictLabelstoColors = request.session['InvColorDictLabelstoColors']
-        gui.ExporttoPDF(overlap, prioritydict)
+        searchtextflag = request.session['searchtextflag']
+        gui.ExporttoPDF(overlap, prioritydict, searchtextflag)
 
         files = os.listdir(path)
         timestr = time.strftime("%Y%m%d-%H%M%S")

@@ -86,7 +86,7 @@ def common(a, b):
 
 @shared_task(bind=True)
 def Highlight_Analyse(self, lst, ColorDict, savePDF, saveExcel, saveExcelUVO, label, debug, filtername,
-                      overlap, prioritydict):
+                      overlap, prioritydict, searchtextflag):
     global LineNumbers
 
     d = {}
@@ -209,7 +209,7 @@ def Highlight_Analyse(self, lst, ColorDict, savePDF, saveExcel, saveExcelUVO, la
 
         if savePDF:
 
-            doc = markup(input_pdf,DocDictList[input_pdf], ColorDict, debug)
+            doc = markup(input_pdf,DocDictList[input_pdf], ColorDict, searchtextflag)
             saveDocToPDF(doc,input_pdf,"output", timestr, debug)
 
     if saveExcel:
@@ -424,7 +424,7 @@ def MergeList2Dict(DictList: list, debug: bool):
         merge(DocDict, d, strategy=Strategy.ADDITIVE)
     return DocDict
 
-def markup(input_pdf, DocDictListInstance, ColorDict, debug):
+def markup(input_pdf, DocDictListInstance, ColorDict, searchtextflag):
     Y0[input_pdf]={}
     Y1[input_pdf]={}
     LineNumbers[input_pdf] = {}
@@ -463,10 +463,15 @@ def markup(input_pdf, DocDictListInstance, ColorDict, debug):
                         if ColorDict[key][3]:
                             SearchText = re.sub("\n", "", SearchText)
                             SearchText = re.sub("  ", " ", SearchText)
-                            if (not (True in [SearchText in i for i in listSearchText])) and \
-                                    (not (True in [i in SearchText for i in listSearchText])):
+                            if searchtextflag == True:
+                                if (not (True in [SearchText in i for i in listSearchText])) and \
+                                        (not (True in [i in SearchText for i in listSearchText])):
+                                    listSearchText.append(SearchText)
+                                    annotatedata=annotate(input_pdf, page, SearchText, key, "", ColorDict, debug)
+                                    page = annotatedata
+                            else:
                                 listSearchText.append(SearchText)
-                                annotatedata=annotate(input_pdf, page, SearchText, key, "", ColorDict, debug)
+                                annotatedata = annotate(input_pdf, page, SearchText, key, "", ColorDict, debug)
                                 page = annotatedata
 
 

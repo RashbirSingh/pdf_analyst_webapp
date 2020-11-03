@@ -104,7 +104,7 @@ def ExportDetailstoExcel(eff=None, label=object):
         saveDocDict2Excel(d, dry + pathsep + outfldr + pathsep + "Analysis_", timestr, file_sel_list, exportHyperlinks,
                           debug7)
 
-def ExporttoPDF(overlap, prioritydict):
+def ExporttoPDF(overlap, prioritydict, searchtextflag):
     global time, debug6, results, file_sel_list, outfldr
     timestr = time.strftime("%Y%m%d-%H%M%S")
     pathnew, p0, p1 = "", "", ""
@@ -157,7 +157,7 @@ def ExporttoPDF(overlap, prioritydict):
 
         p0 = os.path.split(file)[0]
         p1 = os.path.split(file)[1]
-        doc = markup(file, d2[file], InvColorDictLabelstoColors, debug6)
+        doc = markup(file, d2[file], InvColorDictLabelstoColors, searchtextflag)
         pathnew = p0 + pathsep + outfldr + pathsep + "/highlight/" + p1[:-4] + ".pdf"
         doc.save(pathnew) ##TODO: Add user specific path
         doc.close()
