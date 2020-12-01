@@ -1046,6 +1046,65 @@
           </td>
         </tr>
 
+<!-- URL -->
+<tr>
+  <td><a onmouseover="infoP('Selected category is QUOTE')" onmouseout="HideinfoP()"
+         href="#">URL</a></td>
+  <td><input onmouseover="infoP('Highlight URL in the analysis')" onmouseout="HideinfoP()"
+             type="checkbox" name="urlcheck" id="urlcheck"checked></td>
+  <td><input type="range" name="quoterange" id="urlrange" min="0" max="1" step="0.05" value="0.25" ></td>
+  <td><input type="radio" id="urlHighlight" name="urlhighlightstyle" value="Highlight" checked></td>
+  <td><input type="radio" id="urlUnderline" name="urlhighlightstyle" value="Underline"></td>
+  <td><input type="radio" id="urlRectangle" name="urlhighlightstyle" value="Rectangle"></td>
+  <td><input type="radio" id="urlSquigglyunderline" name="urlhighlightstyle" value="Squiggly underline"></td>
+  <td> <select name="urlprior" id="urlprior">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8" selected>8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+          <option value="13">13</option>
+          <option value="14">14</option>
+          <option value="15">15</option>
+          <option value="16">16</option>
+          <option value="17">17</option>
+          <option value="18">18</option>
+          <option value="19">19</option>
+          <option value="20">20</option> </select>
+  </td>
+  <td><select name="urlcolor" id="urlcolor" onchange="updateCustomColor(this, 'customquotecolor')">
+    <option value="Grey">Grey</option>
+    <option value="Black">Black</option>
+    <option value="Red">Red</option>
+    <option value="Orange">Orange</option>
+    <option value="Yellow">Yellow</option>
+    <option value="Green">Green</option>
+    <option value="Lime">Lime</option>
+    <option value="Aqua">Aqua</option>
+    <option value="Cyan">Cyan</option>
+    <option value="Mid_Blue">Mid_Blue</option>
+    <option value="Dark_Blue">Dark_Blue</option>
+    <option value="Purple">Purple</option>
+    <option value="Magenta">Magenta</option>
+    <option value="HotPink">HotPink</option>
+    <option value="Brick">Brick</option>
+    <option value="Brick2">Brick2</option>
+    <option value="Salmon">Salmon</option>
+    <option value="PalePink">PalePink</option>
+    <option value="Light_Purple" selected>Light_Purple</option>
+    <option value="LtYellow">LtYellow</option>
+  <option value="Custom">Custom</option></select>
+    <input id="customurlcolor" name="customurlcolor" type="color" value="#b19cd9" disabled>
+  </td>
+</tr>
+
 <!-- REDACTED -->
         <tr>
           <td><a onmouseover="infoP('Selected category is REDACTED')" onmouseout="HideinfoP()"
@@ -1327,6 +1386,7 @@
     document.getElementById('phoneprior').value = '1';
     document.getElementById('positivepointprior').value = '8';
     document.getElementById('quoteprior').value = '8';
+    document.getElementById('urlprior').value = '8';
     document.getElementById('redactedprior').value = '1';
     document.getElementById('timeprior').value = '4';
     document.getElementById('wordprior').value = '20';
@@ -1346,6 +1406,7 @@
   document.getElementById('phonecheck').checked = true;
   document.getElementById('positivepointcheck').checked = true;
   document.getElementById('quotecheck').checked = true;
+  document.getElementById('urlcheck').checked = true;
   document.getElementById('redactedcheck').checked = true;
   document.getElementById('timecheck').checked = true;
   document.getElementById('wordcheck').checked = false;
@@ -1365,6 +1426,7 @@
   document.getElementById('phoneHighlight').checked = true;
   document.getElementById('positivepointHighlight').checked = true;
   document.getElementById('quoteHighlight').checked = true;
+  document.getElementById('urlHighlight').checked = true;
   document.getElementById('redactedHighlight').checked = true;
   document.getElementById('timeHighlight').checked = true;
   document.getElementById('wordHighlight').checked = true;
@@ -1384,6 +1446,7 @@
   document.getElementById("phonerange").value = "0.25";
   document.getElementById("positivepointrange").value = "0.25";
   document.getElementById("quoterange").value = "0.25";
+  document.getElementById("urlrange").value = "0.25";
   document.getElementById("redactedrange").value = "0.25";
   document.getElementById("timerange").value = "0.25";
   document.getElementById("wordrange").value = "0.25";
@@ -1436,6 +1499,10 @@
     document.getElementById('quotecolor').value = 'Light_Purple';
   document.getElementById('customquotecolor').value = '#b19cd9';
   document.getElementById("customquotecolor").disabled = true;
+
+      document.getElementById('urlcolor').value = 'dark_orange';
+  document.getElementById('customurlcolor').value = '#53350B';
+  document.getElementById("customurlcolor").disabled = true;
 
     document.getElementById('timecolor').value = 'Aqua';
   document.getElementById('customtimecolor').value = '#00FFFF';

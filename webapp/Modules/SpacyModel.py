@@ -6,7 +6,11 @@ import plac
 import random
 import warnings
 from pathlib import Path
+import pandas as pd
 import spacy
+import fitz
+
+import xlrd
 from spacy.util import minibatch, compounding
 
 
@@ -46,6 +50,24 @@ class SpacyModel:
 
         logging.info('Exiting SpacyModel.jsonToTupple')
         return trainingData
+
+
+    def jsonToCsv(self, TrainingDataPath):
+        finalDf = pd.DataFrame()
+        count = 0
+        outputJsonToPandas = pd.read_json(TrainingDataPath)
+        TextContent = outputJsonToPandas.content[0]
+        for CurrentEntitie in outputJsonToPandas.entities:
+            for i in CurrentEntitie:
+                for CurrentContent in outputJsonToPandas.content:
+                    finalDf = finalDf.append({"Text": CurrentContent[i[0]:i[1]],
+                                              "StartIndex": i[0],
+                                              "EndIndex": i[1],
+                                              "Category": i[2]}, ignore_index=True)
+            finalDf = finalDf.loc[finalDf.Text != '',:]
+            finalDf.to_csv(str(count)+".csv")
+            count = count + 1
+
 
     def labelTraining(self, trainingData, n_iter,
                       output_dir='TrainedModel',
@@ -199,3 +221,20 @@ class SpacyModel:
                                          'end_char': ent.end_char,
                                          'label': ent.label_}
         return modelResultDict
+
+    def sheetToTuple(self, pathToExcel, pathToPdf):
+        DataSheet = pd.ExcelFile(pathToExcel)
+        pdfFile = fitz.open(pathToPdf)
+        trainData = []
+        featuresName = DataSheet.sheet_names[1:]
+        for feature in featuresName:
+            featureSheet = DataSheet.parse(feature).drop(['Term', 'File', 'Sent.', 'Context', 'Hyperlink'], axis=1)
+            for pagenumber in featureSheet.Page.unique():
+                Rows = featureSheet.loc[featureSheet.Page == pagenumber, ['Start Index', 'End Index']]
+                for eachRow in Rows.values:
+                    tranDict = {}
+                    tranDict['content'] = pdfFile[0].getText()
+                    tranDict['entities'] = [feature, eachRow[0], eachRow[1]]
+                    trainData.append(tranDict)
+
+        return trainData

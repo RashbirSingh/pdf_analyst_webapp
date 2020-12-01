@@ -162,7 +162,7 @@
           <tr>
               <td><a onmouseover="infoP('Search Text Flag setting')"
                      onmouseout="HideinfoP()"
-                     href="#">Remove Search Text Flag</a></td>
+                     href="#">Remove overlapping based on longest match win</a></td>
               <td><input type="checkbox" name="searchtextflag"></td>
           </tr>
           </tbody>
@@ -212,8 +212,11 @@
                 <th scope="col" width="11%"></th>
                 <th scope="col" width="45%">File Name</th>
                 <th scope="col" width="3%">Page</th>
+                <th scope="col" width="3%">Start Index</th>
+                <th scope="col" width="3%">End Index</th>
+                <th scope="col" width="3%">Line</th>
                 <th scope="col" width="3%">Sentence</th>
-                <th scope="col" width="70%">Context</th>
+                <th scope="col" width="61%">Context</th>
         </tr>
       </thead>
       </table>
@@ -250,7 +253,7 @@
                         <li class="findings"><span class="caret" onclick="showhidetableelement()"> {{ x }}</span>
                         {% for data in y %}
                         <tr>
-                            <td style="font-size:12px;"
+                            <td style="font-size:10px;"
                                 onmouseover="infoP('Open the document in new tab')"
                                 onmouseout="HideinfoP()"
                                 width="10%"
@@ -265,12 +268,30 @@
                                 <a href="javascript:void(0)"> {{ data.1 }} </a>
                             </td>
                             <td style="font-size:12px;"
+                                title="Start Index"
+                                onmouseover="infoP('Start Index')"
+                                onmouseout="HideinfoP()"
+                                width="5%" onclick="text.html">
+                                {{ data.2 }}
+                            </td>
+
+                            <td style="font-size:12px;"
+                                title="End Index"
+                                onmouseover="infoP('End Index')"
+                                onmouseout="HideinfoP()"
+                                width="5%" onclick="text.html">
+                                {{ data.3 }}
+                            </td>
+
+                            <td style="font-size:12px;" width="5%">{{ data.4 }}</td>
+
+                            <td style="font-size:12px;"
                                 title="Click to see the {{ i }} in document"
                                 onmouseover="infoP('Click to see the {{ i }} in document')"
                                 onmouseout="HideinfoP()"
                                 width="5%" onclick="text.html">
-                                <a href="highlightreview?filepath=media/documents/{{ data.0 }}&page={{ data.1 }}&word={{ i }} " target="_blank">{{ data.2 }}</a></td>
-                            <td style="font-size:12px;" width="80%">{{ data.3 }}</td>
+                                <a href="highlightreview?filepath=media/documents/{{ data.0 }}&page={{ data.1 }}&word={{ i }} " target="_blank">{{ data.5 }}</a></td>
+                            <td style="font-size:12px;" width="70%">{{ data.6 }}</td>
 
                         </tr>
                         {% endfor %}
@@ -282,7 +303,7 @@
                         {% else %}
                         {% for data in j %}
                         <tr>
-                            <td style="font-size:12px;"
+                            <td style="font-size:10px;"
                                 onmouseover="infoP('Open the document in new tab')"
                                 onmouseout="HideinfoP()"
                                 width="10%"
@@ -296,13 +317,31 @@
                                 onclick="window.open('media/documents/highlight/{{data.0}}#page={{data.1}}')">
                                 <a href="javascript:void(0)"> {{ data.1 }} </a>
                             </td>
+                                                        <td style="font-size:12px;"
+                                title="Start Index"
+                                onmouseover="infoP('Start Index')"
+                                onmouseout="HideinfoP()"
+                                width="5%" onclick="text.html">
+                                {{ data.2 }}
+                            </td>
+
+                            <td style="font-size:12px;"
+                                title="End Index"
+                                onmouseover="infoP('End Index')"
+                                onmouseout="HideinfoP()"
+                                width="5%" onclick="text.html">
+                                {{ data.3 }}
+                            </td>
+
+                            <td style="font-size:12px;" width="5%">{{ data.4 }}</td>
+
                             <td style="font-size:12px;"
                                 title="Click to see the {{ i }} in document"
                                 onmouseover="infoP('Click to see the {{ i }} in document')"
                                 onmouseout="HideinfoP()"
                                 width="5%" onclick="text.html">
-                                <a href="highlightreview?filepath=media/documents/{{ data.0 }}&page={{ data.1 }}&word={{ i }} " target="_blank">{{ data.2 }}</a></td>
-                            <td style="font-size:12px;" width="80%">{{ data.3 }}</td>
+                                <a href="highlightreview?filepath=media/documents/{{ data.0 }}&page={{ data.1 }}&word={{ i }} " target="_blank">{{ data.5 }}</a></td>
+                            <td style="font-size:12px;" width="80%">{{ data.6 }}</td>
                         </tr>
                         {% endfor %}
                         {% endif %}

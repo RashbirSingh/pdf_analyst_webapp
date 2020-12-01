@@ -216,7 +216,7 @@ def documentsview(request):
 
         if 'overlap' in request.POST.dict():
             overlap = 1
-        elif ('overlap' not in request.POST.dict()) and (request.session['overlap'] == 1):
+        elif ('overlap' not in request.POST.dict()):
                 overlap = 0
         else:
             overlap = 1
@@ -338,7 +338,6 @@ def analysisresult(request):
                         # sorted(resultDict['d'][key].items(), key=lambda x: float(re.sub('\d+.\d+', '', x[0]))))
                 #     .\d+.{1,2}$
 
-                ##TODO: Manage highlighting of date
                 elif key == 'DATE':
                     for k, v in list(resultDict['d']['DATE'].items()):
                         monthlist = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august',
@@ -519,7 +518,8 @@ def exportdetailstoexcel(request):
         overlap = request.session['overlap']
         filtername = request.session['filtername']
         prioritydict = request.session['prioritydict']
-        resultDict = gui.analyse_file_webapp(absolutedocumentlist, filtername, overlap, prioritydict)
+        searchtextflag = request.session['searchtextflag']
+        resultDict = gui.analyse_file_webapp(absolutedocumentlist, filtername, overlap, prioritydict, searchtextflag)
         gui.arrangeAliases(resultDict['d'], False)
         gui.ExportDetailstoExcel()
 
@@ -565,9 +565,10 @@ def exporttopdf(request):
 
         shutil.make_archive("HighlightedPDFs", 'zip', path)
         response = HttpResponse(open(settings.BASE_DIR + "/HighlightedPDFs.zip", 'rb'), content_type='application/zip')
-        for index, file in enumerate(files):
-            os.rename(os.path.join(path, file),
-                  os.path.join(path + "/" + re.sub(timestr, "", file)))
+        files = os.listdir(path)
+        for index, filenew in enumerate(files):
+            os.rename(os.path.join(path, filenew),
+                  os.path.join(path + "/" + re.sub(timestr, "", filenew)))
         response['Content-Disposition'] = 'attachment; filename=HighlightedPDFs.zip'
         # try:
         #     shutil.rmtree(path)
@@ -589,7 +590,8 @@ def exportdicttoexceluvo(request):
         overlap = request.session['overlap']
         filtername = request.session['filtername']
         prioritydict = request.session['prioritydict']
-        resultDict = gui.analyse_file_webapp(absolutedocumentlist, filtername, overlap, prioritydict)
+        searchtextflag = request.session['searchtextflag']
+        resultDict = gui.analyse_file_webapp(absolutedocumentlist, filtername, overlap, prioritydict, searchtextflag)
         gui.arrangeAliases(resultDict['d'], False)
         gui.ExportDicttoExcelUVO()
 
@@ -712,6 +714,7 @@ def settingspage(request):
                           'positivepointprior': 'POSITIVE_POINT',
                           'provisionprior': 'PROVISION',
                           'quotehighlightstyle': 'QUOTE',
+                          'urlhighlightstyle': 'URL',
                           'redactedprior': 'REDACTED',
                           'timehighlightstyle': 'TIME',
                           'wordhighlightstyle': 'WORD'
@@ -737,6 +740,7 @@ def settingspage(request):
                  'positivepointrange': 'POSITIVE_POINT',
                  'provisionrange': 'PROVISION',
                  'quoterange': 'QUOTE',
+                 'urlrange': 'URL',
                  'redactedrange': 'REDACTED',
                  'timerange': 'TIME',
                  'wordrange': 'WORD'
@@ -762,6 +766,7 @@ def settingspage(request):
                  'positivepointcheck': 'POSITIVE_POINT',
                  'provisioncheck': 'PROVISION',
                  'quotecheck': 'QUOTE',
+                 'urlcheck': 'URL',
                  'redactedcheck': 'REDACTED',
                  'timecheck': 'TIME',
                  'wordcheck': 'WORD'
@@ -787,6 +792,7 @@ def settingspage(request):
                  'positivepointcolor': ['POSITIVE_POINT', 'custompositivepointcolor'],
                  'provisioncolor': ['PROVISION', 'customprovisioncolor'],
                  'quotecolor': ['QUOTE', 'customquotecolor'],
+                 'urlcolor': ['URL', 'customurlcolor'],
                  'redactedcolor': ['REDACTED', 'customredactedcolor'],
                  'timecolor': ['TIME', 'customtimecolor'],
                  'wordcolor': ['WORD', 'customwordcolor']
@@ -901,7 +907,7 @@ def settingspage(request):
             prioritydict['WORD'] = int(request.POST.getlist('wordprior')[0])
 
             request.session['prioritydict'] = prioritydict  ## Storing the priority list into the request session
-            request.session['overlap'] = 0
+            request.session['overlap'] = 1
 
 
             save_as = request.POST.getlist('save_settings_as')[0]

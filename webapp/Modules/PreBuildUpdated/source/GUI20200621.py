@@ -459,7 +459,7 @@ def pdfannot2df(input_pdf, outputFileName, debug):
 
 
 @shared_task(bind=True)
-def analyse_file_webapp(self, lst, filtername, overlap, prioritydict):
+def analyse_file_webapp(self, lst, filtername, overlap, prioritydict, searchtextflag):
     global file, docs, results, debug, file_list, file_sel_list, d, DocDict, DocDictList, textSentencesDict, InvColorDictLabelstoColors
 
 
@@ -472,8 +472,9 @@ def analyse_file_webapp(self, lst, filtername, overlap, prioritydict):
             results = {}
             break
     #if not tuple(lst) in results:
+
     returndata = Highlight_Analyse.delay(lst, InvColorDictLabelstoColors, False, False, False, False, False, filtername,
-                                         overlap, prioritydict)
+                                         overlap, prioritydict, searchtextflag)
     # returndata = Highlight_Analyse(lst, InvColorDictLabelstoColors, False, False, False, False, False)
     results[tuple(lst)] = returndata.get()
 

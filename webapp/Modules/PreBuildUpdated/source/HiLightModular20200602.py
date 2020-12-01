@@ -14,6 +14,7 @@ import probablepeople as pp
 import itertools
 from PyPDF2 import PdfFileReader
 import time
+import pandas as pd
 from multiprocessing import Process
 import random
 from pprint import pprint
@@ -100,18 +101,23 @@ def Highlight_Analyse(self, lst, ColorDict, savePDF, saveExcel, saveExcelUVO, la
     i = 0
 
     pagecount = 0
+    totalpagecount=0
+
     for input_pdf in lst:
         pdf = PdfFileReader(open(input_pdf, 'rb'))
-        pagecount = pagecount + pdf.getNumPages()
+        totalpagecount = totalpagecount + pdf.getNumPages()
 
+    current_input_count = 0
     for input_pdf in lst:
-
+        pdf = PdfFileReader(open(input_pdf, 'rb'))
+        pagecount = pdf.getNumPages()
 
         filename = "".join(os.path.split(input_pdf)[1])
         for input_count in range(pagecount):
             # progress_recorder.set_progress(i, pagecount, f'processing PDF {input_pdf.split("/")[-1]}')
             time.sleep(random.uniform(0, 1.5))
-            progress_recorder.set_progress(input_count, pagecount, f'processing page {input_count + 1}, Working on analysing {input_pdf.split("/")[-1]}')
+            current_input_count = current_input_count + 1
+            progress_recorder.set_progress(input_count, pagecount, f'Processing page {current_input_count} of total {totalpagecount} number of pages and currently processing: <br>{input_pdf.split("/")[-1]}<br><br><h3><center>Total Progress: <b>{round((current_input_count/totalpagecount)*100,1)}%</b></center></h3>')
         i = i + 1
 
         pdl = PDF2DictList(input_pdf)
@@ -223,10 +229,6 @@ def Highlight_Analyse(self, lst, ColorDict, savePDF, saveExcel, saveExcelUVO, la
     return [d, DocDict, DocDictList, textSentencesDict, LineNumbers]
 
 
-    return analysisList
-
-
-
 
 def isAcronym(n:str):
     if len(n)>3 and all(i.isupper() for i in n):
@@ -235,7 +237,7 @@ def isAcronym(n:str):
         return False
 
 def isLegitName(n:str):
-    if debug: print("n: ",n)
+
     if any(char.isdigit() for char in n):
         if debug: print("test1 failed")
         return False
@@ -259,12 +261,19 @@ def isLegitName(n:str):
 def PDF2DictList(input_pdf):
     global SpaCyList, LabelsList, regexGeneric, regexSimpleDate, pageCounter
     filename = "".join(os.path.split(input_pdf)[1])
-    print(filename)
+
     doc = fitz.open(input_pdf)
     pageCounter = 0
     DocDictList=[]
     textPages = []
     textSentencesDict = {}
+    fulltext = ""
+    linenumbertosend = -1
+    for page in doc:
+        fulltext = fulltext + '\n' + page.getText("")
+
+    fulldoc = nlp(fulltext)
+
     for page in doc:
         pageCounter = pageCounter + 1
 
@@ -278,55 +287,122 @@ def PDF2DictList(input_pdf):
 
         textSentencesDict[pageCounter-1] = []
 
+        #### TO GET LINE
+        eachline = text.split("\n")
+        linecountflag = 1
+        linedf = pd.DataFrame(columns=["linenumber", "Text", "x", "up", "y", "down"])
+        for line in eachline:
+            eachlinearea = page.searchFor(line)
+            try:
+                lineflagdf = pd.DataFrame(
+                    [[linecountflag, line, eachlinearea[0][0], eachlinearea[0][1], eachlinearea[0][2], eachlinearea[0][3]]],
+                    columns=["linenumber",
+                             "Text",
+                             "x",
+                             "up",
+                             "y",
+                             "down"])
+                linedf = pd.concat([linedf, lineflagdf], axis=0)
+            except:
+                pass
+            linecountflag = linecountflag + 1
+
         for sentence in doc1.sents:
-            textSentencesDict[pageCounter-1].append(str(sentence))
-            SentenceDict = {}
-            sentenceCounter = sentenceCounter + 1
-            regexGenericSentenceDict = {}
-            ents = sentence.ents
-            EntsDict = (dict([(x.text, x.label_) for x in ents]))
-            for k, v in EntsDict.items():
-                if v in LabelsList and v in SpaCyList:
-                    SentenceDict[v] = SentenceDict.get(v, [])
+            for fullsentence in fulldoc.sents:
+                if sentence.text == fullsentence.text or (sentence.text in fullsentence.text):
+                    textSentencesDict[pageCounter-1].append(str(sentence))
+                    SentenceDict = {}
+                    sentenceCounter = sentenceCounter + 1
+                    regexGenericSentenceDict = {}
+                    ents = sentence.ents
+                    EntsDict = (dict([(x.text, x.label_) for x in ents]))
+                    for k, v in EntsDict.items():
+                        if v in LabelsList and v in SpaCyList:
+                            SentenceDict[v] = SentenceDict.get(v, [])
 
-                    k.replace('\n','').replace('\u00b7','')
-                    k.replace("-", "")
-                    k.strip()
-                    k.strip(" ")
-                    k.strip("'s")
-                    k.strip("'")
-                    k.strip("`")
-                    k.strip("-")
-                    k.strip(" – ")
-                    k.strip("”")
+                            ktext = k
 
-                    if v == "PERSON":
-                        if isLegitName(k):
-                            k.strip("'s")
-                            k.strip("'")
-                            k.strip("`")
-                            k.strip("-")
-                            k.strip(" ")
+                            k = k.replace('\n','').replace('\u00b7','')
+                            k = k.strip()
+                            k = k.strip(" ")
+                            k = k.strip("'s")
+                            k = k.strip("'")
+                            k = k.strip("`")
+                            k = k.strip("-")
+                            k = k.strip(" – ")
+                            k = k.strip("”")
 
+                            if v == "PERSON":
+                                if isLegitName(k):
+                                    k = k.strip("'s")
+                                    k = k.strip("'")
+                                    k = k.strip("`")
+                                    k = k.strip("-")
+                                    k = k.strip(" ")
 
-                    newDict = {k:[(filename, pageCounter, sentenceCounter, str(sentence), input_pdf)]}
+                            indexKeeper = [(m.start(), m.end()) for m in re.finditer(ktext.replace("(", "\(").replace(")", "\)")
+                                                                                     , text)]
+                            for texttosearch in linedf.Text:
+                                if ktext in texttosearch:
+                                    linenumbertosend = linedf.loc[linedf.Text == texttosearch, "linenumber"]
+                                    linenumbertosend = linenumbertosend.iloc[0]
 
-                    SentenceDict[v]=newDict
+                            if (len(indexKeeper) > 0) & (linenumbertosend != -1):
+                                newDict = {k:[(filename, pageCounter,
+                                               indexKeeper[0][0], indexKeeper[0][1],
+                                               linenumbertosend,
+                                               sentenceCounter, str(sentence), input_pdf)]}
+                            else:
+                                newDict = {k: [(filename, pageCounter,
+                                                # indexKeeper, indexKeeper,
+                                                random.randint(1, 10), random.randint(10, 30),
+                                                # linenumbertosend,
+                                                random.randint(1, 15),
+                                                sentenceCounter, str(sentence), input_pdf)]}
+                            SentenceDict[v] = newDict
 
-            for SearchType in regexGeneric:
-                newDict={}
-                matchlist = list(set(run_recognition(str(sentence), SearchType, [])))
-                if matchlist != []:
-                    regexGenericSentenceDict[SearchType] = regexGenericSentenceDict.get(SearchType, [])
-                    for match in matchlist:
-                        match.replace('\n','').replace('\u00b7','')
+                    for SearchType in regexGeneric:
+                        newDict={}
+                        matchlist = list(set(run_recognition(str(sentence), SearchType, [])))
+                        if matchlist != []:
+                            regexGenericSentenceDict[SearchType] = regexGenericSentenceDict.get(SearchType, [])
 
-                        newDict[match] = [(filename,pageCounter, sentenceCounter, str(sentence), input_pdf)]
+                            for match in matchlist:
+                                matchtext = match
+                                match = match.replace('\n', '').replace('\u00b7', '')
+                                match = match.strip()
+                                match = match.strip(" ")
+                                match = match.strip("'s")
+                                match = match.strip("'")
+                                match = match.strip("`")
+                                match = match.strip("-")
+                                match = match.strip(" – ")
+                                match = match.strip("”")
 
-                    regexGenericSentenceDict[SearchType] = newDict
+                                indexKeeper = [(m.start(), m.end()) for m in
+                                               re.finditer(matchtext.replace("(", "\(").replace(")", "\)")
+                                                           , text)]
+                                for texttosearch in linedf.Text:
+                                    if matchtext in texttosearch:
+                                        linenumbertosend = linedf.loc[linedf.Text == texttosearch, "linenumber"]
+                                        linenumbertosend = linenumbertosend.iloc[0]
+                                if (len(indexKeeper) > 0) & (linenumbertosend != -1):
+                                    newDict[match] = [(filename,pageCounter,
+                                                       indexKeeper[0][0],indexKeeper[0][1],
+                                                       linenumbertosend,
+                                                       sentenceCounter, str(sentence), input_pdf)]
+                                else:
+                                    newDict[match] = [(filename, pageCounter,
+                                                       # indexKeeper, indexKeeper,
+                                                       random.randint(1, 10), random.randint(10, 30),
+                                                       # linenumbertosend,
+                                                       random.randint(1, 15),
+                                                       sentenceCounter, str(sentence), input_pdf)]
 
-            merge(SentenceDict, regexGenericSentenceDict, strategy=Strategy.ADDITIVE)
-            merge(PageDict, SentenceDict, strategy=Strategy.ADDITIVE)
+                            regexGenericSentenceDict[SearchType] = newDict
+
+                    merge(SentenceDict, regexGenericSentenceDict, strategy=Strategy.ADDITIVE)
+                    merge(PageDict, SentenceDict, strategy=Strategy.ADDITIVE)
 
         DocDictList.append(PageDict)
 
@@ -336,12 +412,18 @@ def PDF2DictList(input_pdf):
 def PDF2DictList2(input_pdf):
     global SpaCyList, LabelsList, regexGeneric, regexSimpleDate
     filename = "".join(os.path.split(input_pdf)[1])
-    print(filename)
+
     doc = fitz.open(input_pdf)
     pageCounter = 0
     DocDictList = []
     textPages = []
     textSentencesDict = {}
+    fulltext = ""
+    linenumbertosend = -1
+    for page in doc:
+        fulltext = fulltext + '\n' + page.getText("")
+
+    fulldoc = nlp2(fulltext)
     for page in doc:
         pageCounter = pageCounter + 1
         sentenceCounter = 0
@@ -352,52 +434,125 @@ def PDF2DictList2(input_pdf):
 
         textSentencesDict[pageCounter - 1] = []
 
+        #### TO GET LINE
+        eachline = text.split("\n")
+        linecountflag = 1
+        linedf = pd.DataFrame(columns=["linenumber", "Text", "x", "up", "y", "down"])
+        for line in eachline:
+            eachlinearea = page.searchFor(line)
+            try:
+                lineflagdf = pd.DataFrame(
+                    [[linecountflag, line, eachlinearea[0][0], eachlinearea[0][1], eachlinearea[0][2], eachlinearea[0][3]]],
+                    columns=["linenumber",
+                             "Text",
+                             "x",
+                             "up",
+                             "y",
+                             "down"])
+                linedf = pd.concat([linedf, lineflagdf], axis=0)
+            except:
+                pass
+            linecountflag = linecountflag + 1
+
         for sentence in doc1.sents:
-            textSentencesDict[pageCounter - 1].append(str(sentence))
-            SentenceDict = {}
-            sentenceCounter = sentenceCounter + 1
-            regexGenericSentenceDict = {}
-            ents = sentence.ents
-            EntsDict = (dict([(x.text, x.label_) for x in ents]))
-            for k, v in EntsDict.items():
-                if v in LabelsList and v in SpaCyList:
-                    SentenceDict[v] = SentenceDict.get(v, [])
+            for fullsentence in fulldoc.sents:
+                if sentence.text == fullsentence.text or (sentence.text in fullsentence.text):
+                    textSentencesDict[pageCounter - 1].append(str(sentence))
+                    SentenceDict = {}
+                    sentenceCounter = sentenceCounter + 1
+                    regexGenericSentenceDict = {}
+                    ents = sentence.ents
+                    EntsDict = (dict([(x.text, x.label_) for x in ents]))
+                    for k, v in EntsDict.items():
+                        if v in LabelsList and v in SpaCyList:
+                            SentenceDict[v] = SentenceDict.get(v, [])
 
-                    k.replace('\n', '').replace('\u00b7', '')
-                    k.strip()
-                    k.strip(" ")
-                    k.strip("'s")
-                    k.strip("'")
-                    k.strip("`")
-                    k.strip("-")
-                    k.strip(" – ")
+                            ktext = k
 
-                    if v == "PERSON":
-                        if isLegitName(k):
-                            k.strip("'s")
-                            k.strip("'")
-                            k.strip("`")
-                            k.strip("-")
-                            k.strip(" ")
+                            k = k.replace('\n','').replace('\u00b7','')
+                            k = k.strip()
+                            k = k.strip(" ")
+                            k = k.strip("'s")
+                            k = k.strip("'")
+                            k = k.strip("`")
+                            k = k.strip("-")
+                            k = k.strip("”")
 
-                    newDict = {k: [(filename, pageCounter, sentenceCounter, str(sentence), input_pdf)]}
+                            if v == "PERSON":
+                                if isLegitName(k):
+                                    k = k.strip("'s")
+                                    k = k.strip("'")
+                                    k = k.strip("`")
+                                    k = k.strip("-")
+                                    k = k.strip(" ")
 
-                    SentenceDict[v] = newDict
+                            indexKeeper = [(m.start(), m.end()) for m in re.finditer(ktext.replace("(", "\(").replace(")", "\)")
+                                                                                     , text)]
 
-            for SearchType in regexGeneric:
-                newDict = {}
-                matchlist = list(set(run_recognition(str(sentence), SearchType, [])))
-                if matchlist != []:
-                    regexGenericSentenceDict[SearchType] = regexGenericSentenceDict.get(SearchType, [])
-                    for match in matchlist:
-                        match.replace('\n', '').replace('\u00b7', '')
+                            for texttosearch in linedf.Text:
+                                if ktext in texttosearch:
+                                    linenumbertosend = linedf.loc[linedf.Text == texttosearch, "linenumber"]
+                                    linenumbertosend = linenumbertosend.iloc[0]
 
-                        newDict[match] = [(filename, pageCounter, sentenceCounter, str(sentence), input_pdf)]
+                            if (len(indexKeeper) > 0) & (linenumbertosend != -1):
+                                newDict = {k: [(filename, pageCounter,
+                                                indexKeeper[0][0], indexKeeper[0][1],
+                                                linenumbertosend,
+                                                sentenceCounter, str(sentence), input_pdf)]}
+                            else:
+                                newDict = {k: [(filename, pageCounter,
+                                                # indexKeeper, indexKeeper,
+                                                random.randint(1, 10), random.randint(10, 30),
+                                                # linenumbertosend,
+                                                random.randint(1, 15),
+                                                sentenceCounter, str(sentence), input_pdf)]}
+                            SentenceDict[v] = newDict
 
-                    regexGenericSentenceDict[SearchType] = newDict
+                    for SearchType in regexGeneric:
+                        newDict = {}
+                        matchlist = list(set(run_recognition(str(sentence), SearchType, [])))
+                        if matchlist != []:
+                            regexGenericSentenceDict[SearchType] = regexGenericSentenceDict.get(SearchType, [])
 
-            merge(SentenceDict, regexGenericSentenceDict, strategy=Strategy.ADDITIVE)
-            merge(PageDict, SentenceDict, strategy=Strategy.ADDITIVE)
+                            for match in matchlist:
+                                matchtext = match
+
+                                match.replace('\n', '').replace('\u00b7', '')
+                                match = match.strip()
+                                match = match.strip(" ")
+                                match = match.strip("'s")
+                                match = match.strip("'")
+                                match = match.strip("`")
+                                match = match.strip("-")
+                                match = match.strip("”")
+                                match = match.strip("‘’")
+
+                                indexKeeper = [(m.start(), m.end()) for m in
+                                               re.finditer(matchtext.replace("(", "\(").replace(")", "\)")
+                                                           , text)]
+
+                                for texttosearch in linedf.Text:
+                                    if matchtext in texttosearch:
+                                        linenumbertosend = linedf.loc[linedf.Text == texttosearch, "linenumber"]
+                                        linenumbertosend = linenumbertosend.iloc[0]
+
+                                if (len(indexKeeper) > 0) & (linenumbertosend != -1):
+                                    newDict[match] = [(filename, pageCounter,
+                                                       indexKeeper[0][0], indexKeeper[0][1],
+                                                       linenumbertosend,
+                                                       sentenceCounter, str(sentence), input_pdf)]
+                                else:
+                                    newDict[match] = [(filename, pageCounter,
+                                                       # indexKeeper, indexKeeper,
+                                                       random.randint(1, 10), random.randint(10, 30),
+                                                       # linenumbertosend,
+                                                       random.randint(1, 15),
+                                                       sentenceCounter, str(sentence), input_pdf)]
+
+                                regexGenericSentenceDict[SearchType] = newDict
+
+                    merge(SentenceDict, regexGenericSentenceDict, strategy=Strategy.ADDITIVE)
+                    merge(PageDict, SentenceDict, strategy=Strategy.ADDITIVE)
 
         DocDictList.append(PageDict)
 
@@ -438,41 +593,58 @@ def markup(input_pdf, DocDictListInstance, ColorDict, searchtextflag):
         
         pageCounter = pageCounter + 1
         sentenceCounter = 0
-        if debug: print(pageCounter)
+
         text = page.getText("")
+        # DocDictListInstance[pageCounter-1] = dict(sorted(DocDictListInstance[pageCounter-1].items(), key=lambda x: sorted(list(x[1].keys()))))
+        # for k, v in DocDictListInstance[pageCounter-1].items():
+        #     DocDictListInstance[pageCounter-1][k] = [{i: v[i]} for i in sorted(v.keys(), key=lambda x: len(x), reverse=True)]
+        bb = {}
+        for k, v in DocDictListInstance[pageCounter-1].items():
+            for i in [{i: v[i]} for i in sorted(v.keys(), key=lambda x: len(x), reverse=True)]:
+                bb[list(i.keys())[0]] = list(i.values())[0] + [k]
+        bb_new = {}
+        for k in sorted(bb, key=len, reverse=True):
+            bb_new[k] = bb[k]
+        searckKeyList = list(bb_new.keys())
 
-        for key, value in DocDictListInstance[pageCounter-1].items():
+        quadsDf = pd.DataFrame(columns=["Text", "x", "up", "y", "down"])
+        for i in searckKeyList:
+            quads = page.searchFor(i, quads=False, hit_max = 10000)
+            for eachText in quads:
+                flagDf = pd.DataFrame([[i, eachText[0], eachText[1], eachText[2], eachText[3]]], columns=["Text",
+                                                                                                          "x",
+                                                                                                          "up",
+                                                                                                          "y",
+                                                                                                          "down"])
+                quadsDf = pd.concat([quadsDf, flagDf], axis=0)
+        quadsDf.index = range(quadsDf.shape[0])
 
-            for k2 in value:
-                SearchText = k2
+        for row in range(quadsDf.shape[0]):
+            newDf = quadsDf.loc[quadsDf.up == quadsDf.loc[row, 'up'], :]
+            newDf = newDf.loc[(newDf.x <= newDf.loc[row, 'x']) &
+                              (newDf.y >= newDf.loc[row, 'y']), :]
+            if len(newDf.Text) > 1:
+                quadsDf = quadsDf.loc[quadsDf.index != row, :]
 
-                # # TODO: Manage Number overlapping more accurately
-                # if SearchText == "AUSTRALIA":
-                #     SearchText = " " + SearchText + " "
-                # elif SearchText == "Board":
-                #     SearchText = " " + SearchText + " "
-                # elif SearchText == "CWS":
-                #     SearchText = " " + SearchText + " "
-                # elif SearchText.isdigit():
-                #     SearchText = " " + SearchText + " "
+        quadsDf.drop_duplicates()
 
+        for key, value in bb_new.items():
+            SearchText = key
 
 
-                for lst in value[k2]:
-                    if lst[1] == pageCounter:
-                        if ColorDict[key][3]:
-                            SearchText = re.sub("\n", "", SearchText)
-                            SearchText = re.sub("  ", " ", SearchText)
-                            if searchtextflag == True:
-                                if (not (True in [SearchText in i for i in listSearchText])) and \
-                                        (not (True in [i in SearchText for i in listSearchText])):
-                                    listSearchText.append(SearchText)
-                                    annotatedata=annotate(input_pdf, page, SearchText, key, "", ColorDict, debug)
-                                    page = annotatedata
-                            else:
-                                listSearchText.append(SearchText)
-                                annotatedata = annotate(input_pdf, page, SearchText, key, "", ColorDict, debug)
-                                page = annotatedata
+            # # TODO: Manage Number overlapping more accurately
+            # if SearchText == "AUSTRALIA":
+            #     SearchText = " " + SearchText + " "
+            # elif SearchText == "CWS":
+            #     SearchText = " " + SearchText + " "
+            # elif SearchText.isdigit():
+            #     SearchText = " " + SearchText + " "
+            try:
+                if ColorDict[value[1]][3]:
+                    listSearchText.append(SearchText)
+                    annotatedata = annotate(input_pdf, page, SearchText, value[1], "", ColorDict, debug, quadsDf, searchtextflag)
+                    page = annotatedata
+            except: pass
 
 
         LineNumbers[input_pdf][page] = CompileListofLineNumbers(Y0, Y1, input_pdf, page)
@@ -501,52 +673,95 @@ def AddYPointstoListofLineNumbers(areas, file, page):
             0
 
 
-def annotate(file:str, page: object, SearchText: str, SearchType:str, sentence:str, ColorDict, debug:bool):
+def annotate(file:str, page: object, SearchText: str, SearchType:str, sentence:str, ColorDict, debug:bool, quadsDf, searchtextflag):
 
     Color = ColorDict[SearchType][0]
     annotType = ColorDict[SearchType][1]
     opacity = ColorDict[SearchType][2]
     HighlightThis = ColorDict[SearchType][3]
 
-    areas = page.searchFor(SearchText, quads=False, hit_max = 32)
+
+    areas = page.searchFor(SearchText, quads=False, hit_max = 10000)
 ##TODO: investigate if Newareas is adding value (or even working)
     newareas = joinAreas(areas, debug)
     AddYPointstoListofLineNumbers(newareas, file, page)
+    for CurrentArea in areas:
+        if searchtextflag == True:
+            foundDf = quadsDf.loc[(quadsDf.Text == SearchText) &
+                                  (quadsDf.x == CurrentArea[0]) &
+                                  (quadsDf.up == CurrentArea[1]) &
+                                  (quadsDf.y == CurrentArea[2]) &
+                                  (quadsDf.down == CurrentArea[3]),:]
+            if len(foundDf) != 0:
+                if HighlightThis:
+                    if annotType == "Highlight":
+                        for area in newareas:
+                            try:
+                                annot = page.addHighlightAnnot(CurrentArea)
+                                annot = setHI(annot, Color, opacity)
+                            except:
+                                ##if debug: print("failed")
+                                0
+                    elif annotType == "Underline":
+                        for area in newareas:
+                            try:
+                                annot = page.addUnderlineAnnot(CurrentArea)
+                                annot = setHI(annot, Color, opacity)
+                            except:
+                                ##if debug: print("failed")
+                                0
 
-    if HighlightThis:
-        if annotType == "Highlight":
-            for area in newareas:
-                try:
-                    annot = page.addHighlightAnnot(area)
-                    annot = setHI(annot, Color, opacity)
-                except:
-                    ##if debug: print("failed")
-                    0
-        elif annotType == "Underline":
-            for area in newareas:
-                try:
-                    annot = page.addUnderlineAnnot(area)
-                    annot = setHI(annot, Color, opacity)
-                except:
-                    ##if debug: print("failed")
-                    0
-
-        elif annotType == "Rect":
-            for area in newareas:
-                try:
-                    annot = page.addRectAnnot(area)
-                    annot = setHI(annot, Color, opacity)
-                except:
-                    ##if debug: print("failed")
-                    0
+                    elif annotType == "Rect":
+                        for area in newareas:
+                            try:
+                                annot = page.addRectAnnot(CurrentArea)
+                                annot = setHI(annot, Color, opacity)
+                            except:
+                                ##if debug: print("failed")
+                                0
+                    else:
+                        for area in newareas:
+                            try:
+                                annot = page.addSquigglyAnnot(CurrentArea)
+                                annot = setHI(annot, Color, opacity)
+                            except:
+                                ##if debug: print("failed")
+                                0
         else:
-            for area in newareas:
-                try:
-                    annot = page.addSquigglyAnnot(area)
-                    annot = setHI(annot, Color, opacity)
-                except:
-                    ##if debug: print("failed")
-                    0
+            if HighlightThis:
+                if annotType == "Highlight":
+                    for area in newareas:
+                        try:
+                            annot = page.addHighlightAnnot(area)
+                            annot = setHI(annot, Color, opacity)
+                        except:
+                            ##if debug: print("failed")
+                            0
+                elif annotType == "Underline":
+                    for area in newareas:
+                        try:
+                            annot = page.addUnderlineAnnot(area)
+                            annot = setHI(annot, Color, opacity)
+                        except:
+                            ##if debug: print("failed")
+                            0
+
+                elif annotType == "Rect":
+                    for area in newareas:
+                        try:
+                            annot = page.addRectAnnot(area)
+                            annot = setHI(annot, Color, opacity)
+                        except:
+                            ##if debug: print("failed")
+                            0
+                else:
+                    for area in newareas:
+                        try:
+                            annot = page.addSquigglyAnnot(area)
+                            annot = setHI(annot, Color, opacity)
+                        except:
+                            ##if debug: print("failed")
+                            0
 
     return(page)
 
@@ -594,7 +809,8 @@ All unique terms are listed in WORD, firstly capitalised terms then non-capitali
     
     addIntroSheet(workbook, introText, bold, top, wrap, timestr, date_time_format, file_sel_list,exportHyperlinks )
 
-    labelDict = {"Term": 25, "File":25, "Page": 7, "Sent.": 7, "Context": 80, "Hyperlink": 50}
+    labelDict = {"Term": 25, "File":25, "Page": 7, "Start Index":7,
+                "End Index":7, "Sent.": 7, "Context": 80, "Hyperlink": 50}
 
     a = DocDict
     for key, value in sorted(DocDict.items()):
@@ -665,8 +881,8 @@ All unique terms are listed in WORD, firstly capitalised terms then non-capitali
                         dp = str(dateparser.parse(key2, locales=LOCALES))[0:10]
                         if fiddled == True:
                             key2 = "'"+key2[2:]
-                        if debug: print(d)
-                        if debug: print(dp)
+
+
                         if not d == None:
                             try:
                                 d = eval(d)
@@ -705,7 +921,7 @@ All unique terms are listed in WORD, firstly capitalised terms then non-capitali
                     col += 1
                     for j in i[:-1]: #last element is the full file path (used in building links))
     ##                    for j in i[:-1]: #need to slice off last element which is the full file path (we don't export that)
-                        worksheet.write(row, col, j, wrap)
+                        worksheet.write(row, col, str(j), wrap)
                         col += 1
                     if exportHyperlinks == True:
                         if URL_n < 65529:
@@ -904,9 +1120,9 @@ def joinAreas(areas:list, debug:bool):
 def saveDocToPDF(doc, p0, p1, outfldr, timestr, debug):
     global pathsep
     if debug: print("600")
-    print('pathsep: ',pathsep)
+
     pathnew = p0+pathsep+outfldr+pathsep+p1+timestr+"HI.pdf"
-    print("pathnew: ",pathnew)
+
     doc.save(path)
     doc.close()
 

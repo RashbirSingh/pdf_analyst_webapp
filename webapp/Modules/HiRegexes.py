@@ -25,3 +25,5 @@ regexGeneric["QUOTE"] = r"(?m)(\W[\"“”].*(?:\n|\r\n?)*.+[\"“”]\W|\W[\'�
 #   The following RegEx does a pretty good job of identifying full names in the case of most people but some (esp women and juniors) are left out.
 ##    regexGeneric["PERSON"] = "(?<=(?i:(Mr|Ms|Mr|Dr|Prof|Mrs|Sir|Dame|Lord|Justice|Chief Justice|Judge)) )(([A-Z]+[a-z]*)( *([A-Z]+[a-z]*)*))"
 ##regexGeneric["WORD"] = "\p{L}*" - very slow! multilingual
+
+regexGeneric["URL"] = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
