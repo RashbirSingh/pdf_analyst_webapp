@@ -90,6 +90,23 @@
             style="width:346px; font-size:18px;">Export Summary Analysis</button>
     </form>
   </a>
+
+<!-- Export Chronology to Word -->
+      <a href="#" style="margin-top:5px">
+            {% for document in documentslist %}
+    <form action="savedocdict2word" method="POST" class="" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="doc" value={{document}}>
+      {% endfor %}
+    <button onmouseover="infoP('Export the Chronology to Word format file')"
+            onmouseout="HideinfoP()"
+            type="submit"  class="btn btn-outline-info"
+            onclick="alert('We are going to export Export Chronology to Word of the analysed document(s)');"
+            style="width:346px; font-size:18px;">Export Chronology to Word</button>
+    </form>
+  </a>
+
+
     <hr style="border-top: 1px dotted #8c8b8b;">
 
 <!--  deletehighlights  -->

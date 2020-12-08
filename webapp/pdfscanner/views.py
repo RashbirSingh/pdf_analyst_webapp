@@ -7,6 +7,7 @@ from pdfscanner.forms import UserForm, UserProfileInfoForm, documentform, userse
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
+from django.core.files.storage import FileSystemStorage
 from django.contrib.auth import authenticate, login, logout
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
@@ -29,6 +30,7 @@ from PyPDF2 import PdfFileReader
 import pandas as pd
 from Modules import BinaryPdfForensics as BPF
 import time
+from docx import Document
 from celery import shared_task
 from celery_progress.backend import ProgressRecorder
 
@@ -501,6 +503,24 @@ def extractimages(request):
         pass
     return response
 
+@login_required
+def ocrpdf(request):
+    pk = request.GET['key']
+    doc = FileDocument.objects.get(pk=pk)
+    path = doc.file_field.path
+
+    gui.ocr_pdf_if_not_searchable(path)
+    fs = FileSystemStorage(location=settings.BASE_DIR)
+
+    # try:
+    with fs.open(path.split("/")[-1][:-4] + "_OCR.pdf") as pdfocr:
+        response = HttpResponse(pdfocr, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename=' + path.split("/")[-1][:-4] + "_OCR.pdf"
+        # os.remove(path.split("/")[-1][:-4]+"_OCR.pdf")
+    # except:
+    #     response = HttpResponse("Non OCR PDF")
+    return response
+
 
 @login_required
 def exportdetailstoexcel(request):
@@ -608,6 +628,25 @@ def exportdicttoexceluvo(request):
             pass
         return response
 
+@login_required
+def savedocdict2word(request):
+    path = os.path.join(settings.BASE_DIR, 'Chronology.docx')
+    try:
+        os.remove(path)
+    except:
+        pass
+    documentslist = request.POST.getlist('doc')
+    absolutedocumentlist = [settings.BASE_DIR + s for s in documentslist]
+    gui.saveDocDict2Word(absolutedocumentlist)
+    path = os.path.join(settings.BASE_DIR, 'Chronology.docx')
+    if os.path.exists(path):
+        document = Document(path)
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    response['Content-Disposition'] = 'attachment; filename=Chronology_'+timestr+'.docx'
+    document.save(response)
+
+    return response
 
 @login_required
 def deletehighlights(request):

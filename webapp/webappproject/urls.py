@@ -54,6 +54,10 @@ urlpatterns = [
     path('privacypolicy.html', views.privacypolicy, name='privacypolicy'),
     path('enduseragreement.html', views.enduseragreement, name='enduseragreement'),
     path('contactus.html', views.contactus, name='contactus'),
+    path('savedocdict2word', views.savedocdict2word, name='savedocdict2word'),
+    url('^ocrpdf', views.ocrpdf, name='ocrpdf'),
+
+
     ## TODO look into this url creating error while migrating
     url(r'^(.*?)media/(?P<path>.*)$', serve,
         {'document_root': settings.MEDIA_ROOT}),

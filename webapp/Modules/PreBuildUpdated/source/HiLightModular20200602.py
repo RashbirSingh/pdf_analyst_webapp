@@ -307,6 +307,7 @@ def PDF2DictList(input_pdf):
                 pass
             linecountflag = linecountflag + 1
 
+        linedf = linedf.drop(linedf[linedf.Text.str.len() <= 4].index)
         for sentence in doc1.sents:
             for fullsentence in fulldoc.sents:
                 if sentence.text == fullsentence.text or (sentence.text in fullsentence.text):
@@ -347,7 +348,7 @@ def PDF2DictList(input_pdf):
                                     linenumbertosend = linedf.loc[linedf.Text == texttosearch, "linenumber"]
                                     linenumbertosend = linenumbertosend.iloc[0]
 
-                            if (len(indexKeeper) > 0) & (linenumbertosend != -1):
+                            if (len(indexKeeper) > 0):
                                 newDict = {k:[(filename, pageCounter,
                                                indexKeeper[0][0], indexKeeper[0][1],
                                                linenumbertosend,
@@ -356,8 +357,8 @@ def PDF2DictList(input_pdf):
                                 newDict = {k: [(filename, pageCounter,
                                                 # indexKeeper, indexKeeper,
                                                 random.randint(1, 10), random.randint(10, 30),
-                                                # linenumbertosend,
-                                                random.randint(1, 15),
+                                                linenumbertosend,
+                                                # random.randint(1, 15),
                                                 sentenceCounter, str(sentence), input_pdf)]}
                             SentenceDict[v] = newDict
 
@@ -377,7 +378,7 @@ def PDF2DictList(input_pdf):
                                 match = match.strip("`")
                                 match = match.strip("-")
                                 match = match.strip(" – ")
-                                match = match.strip("”")
+                                # match = match.strip("”")
 
                                 indexKeeper = [(m.start(), m.end()) for m in
                                                re.finditer(matchtext.replace("(", "\(").replace(")", "\)")
@@ -386,7 +387,7 @@ def PDF2DictList(input_pdf):
                                     if matchtext in texttosearch:
                                         linenumbertosend = linedf.loc[linedf.Text == texttosearch, "linenumber"]
                                         linenumbertosend = linenumbertosend.iloc[0]
-                                if (len(indexKeeper) > 0) & (linenumbertosend != -1):
+                                if (len(indexKeeper) > 0):
                                     newDict[match] = [(filename,pageCounter,
                                                        indexKeeper[0][0],indexKeeper[0][1],
                                                        linenumbertosend,
@@ -395,8 +396,8 @@ def PDF2DictList(input_pdf):
                                     newDict[match] = [(filename, pageCounter,
                                                        # indexKeeper, indexKeeper,
                                                        random.randint(1, 10), random.randint(10, 30),
-                                                       # linenumbertosend,
-                                                       random.randint(1, 15),
+                                                       linenumbertosend,
+                                                       # random.randint(1, 15),
                                                        sentenceCounter, str(sentence), input_pdf)]
 
                             regexGenericSentenceDict[SearchType] = newDict
@@ -454,6 +455,8 @@ def PDF2DictList2(input_pdf):
                 pass
             linecountflag = linecountflag + 1
 
+        linedf = linedf.drop(linedf[linedf.Text.str.len() <= 4].index)
+        linedf.to_csv("linedf"+str(pageCounter)+".csv")
         for sentence in doc1.sents:
             for fullsentence in fulldoc.sents:
                 if sentence.text == fullsentence.text or (sentence.text in fullsentence.text):
@@ -476,7 +479,7 @@ def PDF2DictList2(input_pdf):
                             k = k.strip("'")
                             k = k.strip("`")
                             k = k.strip("-")
-                            k = k.strip("”")
+                            # k = k.strip("”")
 
                             if v == "PERSON":
                                 if isLegitName(k):
@@ -494,7 +497,7 @@ def PDF2DictList2(input_pdf):
                                     linenumbertosend = linedf.loc[linedf.Text == texttosearch, "linenumber"]
                                     linenumbertosend = linenumbertosend.iloc[0]
 
-                            if (len(indexKeeper) > 0) & (linenumbertosend != -1):
+                            if (len(indexKeeper) > 0):
                                 newDict = {k: [(filename, pageCounter,
                                                 indexKeeper[0][0], indexKeeper[0][1],
                                                 linenumbertosend,
@@ -503,8 +506,8 @@ def PDF2DictList2(input_pdf):
                                 newDict = {k: [(filename, pageCounter,
                                                 # indexKeeper, indexKeeper,
                                                 random.randint(1, 10), random.randint(10, 30),
-                                                # linenumbertosend,
-                                                random.randint(1, 15),
+                                                linenumbertosend,
+                                                # random.randint(1, 15),
                                                 sentenceCounter, str(sentence), input_pdf)]}
                             SentenceDict[v] = newDict
 
@@ -524,8 +527,8 @@ def PDF2DictList2(input_pdf):
                                 match = match.strip("'")
                                 match = match.strip("`")
                                 match = match.strip("-")
-                                match = match.strip("”")
-                                match = match.strip("‘’")
+                                # match = match.strip("”")
+                                # match = match.strip("‘’")
 
                                 indexKeeper = [(m.start(), m.end()) for m in
                                                re.finditer(matchtext.replace("(", "\(").replace(")", "\)")
@@ -536,7 +539,7 @@ def PDF2DictList2(input_pdf):
                                         linenumbertosend = linedf.loc[linedf.Text == texttosearch, "linenumber"]
                                         linenumbertosend = linenumbertosend.iloc[0]
 
-                                if (len(indexKeeper) > 0) & (linenumbertosend != -1):
+                                if (len(indexKeeper) > 0):
                                     newDict[match] = [(filename, pageCounter,
                                                        indexKeeper[0][0], indexKeeper[0][1],
                                                        linenumbertosend,
@@ -545,8 +548,8 @@ def PDF2DictList2(input_pdf):
                                     newDict[match] = [(filename, pageCounter,
                                                        # indexKeeper, indexKeeper,
                                                        random.randint(1, 10), random.randint(10, 30),
-                                                       # linenumbertosend,
-                                                       random.randint(1, 15),
+                                                       linenumbertosend,
+                                                       # random.randint(1, 15),
                                                        sentenceCounter, str(sentence), input_pdf)]
 
                                 regexGenericSentenceDict[SearchType] = newDict
@@ -605,20 +608,24 @@ def markup(input_pdf, DocDictListInstance, ColorDict, searchtextflag):
         bb_new = {}
         for k in sorted(bb, key=len, reverse=True):
             bb_new[k] = bb[k]
-        searckKeyList = list(bb_new.keys())
+        # searckKeyList = list(bb_new.keys())
 
-        quadsDf = pd.DataFrame(columns=["Text", "x", "up", "y", "down"])
-        for i in searckKeyList:
-            quads = page.searchFor(i, quads=False, hit_max = 10000)
-            for eachText in quads:
-                flagDf = pd.DataFrame([[i, eachText[0], eachText[1], eachText[2], eachText[3]]], columns=["Text",
-                                                                                                          "x",
-                                                                                                          "up",
-                                                                                                          "y",
-                                                                                                          "down"])
-                quadsDf = pd.concat([quadsDf, flagDf], axis=0)
+        quadsDf = pd.DataFrame(columns=["Text", "page", "x", "up", "y", "down"])
+        removalist = ["Martin Place", "Melbourne", "ASIC Act", "Corporations", "2009"]
+        for ik, _ in bb_new.items():
+            if ik not in removalist:
+                    quads = page.searchFor(ik, quads=False, hit_max = 10000)
+                    for eachText in quads:
+                        flagDf = pd.DataFrame([[ik, pageCounter, eachText[0], eachText[1], eachText[2], eachText[3]]],
+                                              columns=["Text",
+                                                       "page",
+                                                       "x",
+                                                       "up",
+                                                       "y",
+                                                       "down"])
+                        quadsDf = pd.concat([quadsDf, flagDf], axis=0)
+
         quadsDf.index = range(quadsDf.shape[0])
-
         for row in range(quadsDf.shape[0]):
             newDf = quadsDf.loc[quadsDf.up == quadsDf.loc[row, 'up'], :]
             newDf = newDf.loc[(newDf.x <= newDf.loc[row, 'x']) &
@@ -627,10 +634,10 @@ def markup(input_pdf, DocDictListInstance, ColorDict, searchtextflag):
                 quadsDf = quadsDf.loc[quadsDf.index != row, :]
 
         quadsDf.drop_duplicates()
+        quadsDf.to_csv("quadsdfafter"+str(pageCounter)+".csv")
 
         for key, value in bb_new.items():
             SearchText = key
-
 
             # # TODO: Manage Number overlapping more accurately
             # if SearchText == "AUSTRALIA":
@@ -642,7 +649,7 @@ def markup(input_pdf, DocDictListInstance, ColorDict, searchtextflag):
             try:
                 if ColorDict[value[1]][3]:
                     listSearchText.append(SearchText)
-                    annotatedata = annotate(input_pdf, page, SearchText, value[1], "", ColorDict, debug, quadsDf, searchtextflag)
+                    annotatedata = annotate(input_pdf, page, SearchText, value[1], "", ColorDict, debug, quadsDf, searchtextflag, pageCounter)
                     page = annotatedata
             except: pass
 
@@ -673,7 +680,7 @@ def AddYPointstoListofLineNumbers(areas, file, page):
             0
 
 
-def annotate(file:str, page: object, SearchText: str, SearchType:str, sentence:str, ColorDict, debug:bool, quadsDf, searchtextflag):
+def annotate(file:str, page: object, SearchText: str, SearchType:str, sentence:str, ColorDict, debug:bool, quadsDf, searchtextflag, pageCounter):
 
     Color = ColorDict[SearchType][0]
     annotType = ColorDict[SearchType][1]
@@ -685,17 +692,21 @@ def annotate(file:str, page: object, SearchText: str, SearchType:str, sentence:s
 ##TODO: investigate if Newareas is adding value (or even working)
     newareas = joinAreas(areas, debug)
     AddYPointstoListofLineNumbers(newareas, file, page)
-    for CurrentArea in areas:
+    for CurrentArea in newareas:
         if searchtextflag == True:
             foundDf = quadsDf.loc[(quadsDf.Text == SearchText) &
+                                  (quadsDf.page == pageCounter) &
                                   (quadsDf.x == CurrentArea[0]) &
                                   (quadsDf.up == CurrentArea[1]) &
-                                  (quadsDf.y == CurrentArea[2]) &
                                   (quadsDf.down == CurrentArea[3]),:]
-            if len(foundDf) != 0:
+            # &
+            # (quadsDf.up == CurrentArea[1]) &
+            # (quadsDf.y == CurrentArea[2]) &
+            # (quadsDf.down == CurrentArea[3])
+            if len(foundDf) > 0:
                 if HighlightThis:
                     if annotType == "Highlight":
-                        for area in newareas:
+                        # for area in newareas:
                             try:
                                 annot = page.addHighlightAnnot(CurrentArea)
                                 annot = setHI(annot, Color, opacity)
@@ -703,7 +714,7 @@ def annotate(file:str, page: object, SearchText: str, SearchType:str, sentence:s
                                 ##if debug: print("failed")
                                 0
                     elif annotType == "Underline":
-                        for area in newareas:
+                        # for area in newareas:
                             try:
                                 annot = page.addUnderlineAnnot(CurrentArea)
                                 annot = setHI(annot, Color, opacity)
@@ -712,7 +723,7 @@ def annotate(file:str, page: object, SearchText: str, SearchType:str, sentence:s
                                 0
 
                     elif annotType == "Rect":
-                        for area in newareas:
+                        # for area in newareas:
                             try:
                                 annot = page.addRectAnnot(CurrentArea)
                                 annot = setHI(annot, Color, opacity)
@@ -720,48 +731,49 @@ def annotate(file:str, page: object, SearchText: str, SearchType:str, sentence:s
                                 ##if debug: print("failed")
                                 0
                     else:
-                        for area in newareas:
+                        # for area in newareas:
                             try:
                                 annot = page.addSquigglyAnnot(CurrentArea)
                                 annot = setHI(annot, Color, opacity)
                             except:
                                 ##if debug: print("failed")
                                 0
-        else:
-            if HighlightThis:
-                if annotType == "Highlight":
-                    for area in newareas:
-                        try:
-                            annot = page.addHighlightAnnot(area)
-                            annot = setHI(annot, Color, opacity)
-                        except:
-                            ##if debug: print("failed")
-                            0
-                elif annotType == "Underline":
-                    for area in newareas:
-                        try:
-                            annot = page.addUnderlineAnnot(area)
-                            annot = setHI(annot, Color, opacity)
-                        except:
-                            ##if debug: print("failed")
-                            0
 
-                elif annotType == "Rect":
-                    for area in newareas:
-                        try:
-                            annot = page.addRectAnnot(area)
-                            annot = setHI(annot, Color, opacity)
-                        except:
-                            ##if debug: print("failed")
-                            0
-                else:
-                    for area in newareas:
-                        try:
-                            annot = page.addSquigglyAnnot(area)
-                            annot = setHI(annot, Color, opacity)
-                        except:
-                            ##if debug: print("failed")
-                            0
+    if searchtextflag != True:
+        if HighlightThis:
+            if annotType == "Highlight":
+                for area in newareas:
+                    try:
+                        annot = page.addHighlightAnnot(area)
+                        annot = setHI(annot, Color, opacity)
+                    except:
+                        ##if debug: print("failed")
+                        0
+            elif annotType == "Underline":
+                for area in newareas:
+                    try:
+                        annot = page.addUnderlineAnnot(area)
+                        annot = setHI(annot, Color, opacity)
+                    except:
+                        ##if debug: print("failed")
+                        0
+
+            elif annotType == "Rect":
+                for area in newareas:
+                    try:
+                        annot = page.addRectAnnot(area)
+                        annot = setHI(annot, Color, opacity)
+                    except:
+                        ##if debug: print("failed")
+                        0
+            else:
+                for area in newareas:
+                    try:
+                        annot = page.addSquigglyAnnot(area)
+                        annot = setHI(annot, Color, opacity)
+                    except:
+                        ##if debug: print("failed")
+                        0
 
     return(page)
 

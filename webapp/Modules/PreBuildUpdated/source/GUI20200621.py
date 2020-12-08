@@ -5,7 +5,15 @@ import pandas
 import itertools
 import time
 
+## used by Word export
+from docx import Document
+from docx.shared import Inches, Cm
+from docx.enum.section import WD_ORIENTATION
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+
 from time import sleep
+import ocrmypdf
 
 from Modules.PreBuildUpdated.source.HiLightModular20200602 import *
 from Modules.PreBuildUpdated.source.HiColors import *
@@ -85,6 +93,177 @@ radioVar = {}
 #             'textSentencesDict': textSentencesDict}
 
 
+def set_repeat_table_header(row):
+    """ set repeat table row on every new page
+    """
+    tr = row._tr
+    trPr = tr.get_or_add_trPr()
+    tblHeader = OxmlElement('w:tblHeader')
+    tblHeader.set(qn('w:val'), "true")
+    trPr.append(tblHeader)
+    return row
+
+def set_col_widths(table, dic):
+    widths = []
+    idx = 0
+    for key in dic:
+        widths.append(dic[key])
+    for row in table.rows:
+        for idx, width in enumerate(widths):
+            row.cells[idx].width = Cm(width)
+
+def make_rows_bold(*rows):
+    for row in rows:
+        for cell in row.cells:
+            for paragraph in cell.paragraphs:
+                for run in paragraph.runs:
+                    run.font.bold = True
+
+def Export2Word(eff = None, label=object):
+    global file, time, debug7, results, file_sel_list, exportHyperlinks
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    d = results[tuple(file_sel_list)][0]
+    pth = file_sel_list[0]
+
+    saveDocDict2Word(d, pth, timestr, file_sel_list, exportHyperlinks, debug7)
+    label.config(text='Saved as Chronology_'+timestr+'.docx')
+
+def rearrangeDate(string, sep):
+    yr = string[0:4]
+    mo = string[5:7]
+    da = string[8:10]
+    if LOCALES == ['en']:
+        return (mo+sep+da+sep+yr)
+    else:
+        return (da+sep+mo+sep+yr)
+
+def saveDocDict2Word(file_sel_list: list):
+    # Exports the DATE records as a formatted Chronology in Word. The columns include parsed date, unparsed (raw) date, source, page, sentence, context.
+    records = results[tuple(file_sel_list)][0]
+    document = Document()
+
+    sections = document.sections
+
+    margin = 2.54
+
+    sep = "/"
+
+    ##    format_ = '%Y-%m-%d'
+    ##    format_ = '%Y-%m-%d'
+
+    for section in sections:
+        # change orientation to landscape
+        section.orientation = WD_ORIENTATION.LANDSCAPE
+        new_width, new_height = section.page_height, section.page_width
+        section.page_width = new_width
+        section.page_height = new_height
+        section.top_margin = Cm(margin)
+        section.bottom_margin = Cm(margin)
+        section.left_margin = Cm(margin)
+        section.right_margin = Cm(margin)
+
+    document.add_heading('Combined chronology', 0)
+
+    document.add_heading('List of files analysed', level=1)
+
+    for file in file_sel_list:
+        p = document.add_paragraph(
+            file, style='List Bullet'
+        )
+    ##        add_hyperlink(p, text=str(file), url='http://www.demo.com', color=None, underline=True)
+
+    labelDict = {"Date": 2.5,
+                 "Text": 2.5,
+                 "Source": 5,
+                 "Page": 0.7,
+                 "Start Index": 1.0,
+                 "End Index": 1.0,
+                 "Line": 0.3,
+                 "Sent.": 0.7,
+                 "Context": 10}
+    ##    labelDict = {"Date":2.5, "EndDate":2.5, "Text": 2.5, "Source":2.5, "Page": 0.7, "Sent.": 0.7, "Context": 10}
+    ##    labelDict = {"Term": 25, "File":25, "Page": 7, "Sent.": 7, "Context": 80, "Hyperlink": 50}
+
+    document.add_heading('Chronology', level=1)
+
+    table = document.add_table(rows=1, cols=len(labelDict))
+    ##    print(table.autofit)
+    ##    table.allow_autofit
+    ##    print(table.autofit)
+
+    hdr_cells = table.rows[0].cells
+    make_rows_bold(table.rows[0])
+
+    n = 0
+
+    for key in labelDict:
+        hdr_cells[n].text = key
+        n += 1
+
+    set_repeat_table_header(table.rows[0])
+
+    for key in records:
+        if key == "DATE":
+            for key2 in records["DATE"]:
+
+                for tupl in records["DATE"][key2]:
+                    print("tupl: ", tupl)
+                    row_cells = table.add_row().cells
+
+                    fiddled = False
+                    if key2[:1] == "'":
+                        key2 = guessCentury(key2[1:])
+                        fiddled = True
+                    d = MS_Recognize(key2)
+                    dp = str(dateparser.parse(key2, locales=LOCALES))[0:10]
+
+                    if fiddled == True:
+                        key2 = "'" + key2[2:]
+                    if not d == None:
+                        try:
+                            d = eval(d)
+                            debug = False
+                            if debug:
+                                print("d: ", d)
+                                print("dp: ", dp)
+                            ##                            print('d["values"][0]["type"]:',d["values"][0]["type"])
+
+                            if str(d["values"][0]["type"]) == "date":
+                                ##                                print("True")
+                                date1 = d["values"][0]["value"]
+                                date1_time = rearrangeDate(date1, sep)
+                                ##                                date1_time = datetime.datetime.strptime(dp, format_)
+                                ##                                print("date1_time: ", date1_time)
+                                ##                                row_cells[0].text = "Demo"
+                                row_cells[0].text = str(date1_time)[:10]
+
+                            elif d["values"][0]["type"] == "daterange":
+                                date1 = d["values"][0]["start"]
+                                date1_time = rearrangeDate(date1, sep)
+                                ##                                datetime.datetime.strptime(dp, format_)
+                                ##                                date1_time = datetime.datetime.strptime(date1, '%Y-%m-%d')
+                                row_cells[0].text = str(date1_time)[:10]
+                        ##                                row_cells[0].text = "Demo"
+                        ##                                row_cells[0].text = date1_time
+
+                        except:
+                            0
+
+                        # version that does not include an End-date" field
+
+                        row_cells[1].text = key2
+                        n = 2
+                        try:
+                            for item in tupl[:-1]:
+                                row_cells[n].text = str(item)
+                                n += 1
+                        except: pass
+
+    set_col_widths(table, labelDict)
+    filename = 'Chronology.docx'
+    document.save(filename)
+
+
 def ExportDicttoExcelUVO(eff=None, label=object):
     global file, time, debug, results, file_sel_list, exportHyperlinks
     timestr = time.strftime("%Y%m%d-%H%M%S")
@@ -103,6 +282,20 @@ def ExportDetailstoExcel(eff=None, label=object):
     if True:
         saveDocDict2Excel(d, dry + pathsep + outfldr + pathsep + "Analysis_", timestr, file_sel_list, exportHyperlinks,
                           debug7)
+
+
+def ExportDetailstoWord(eff=None, label=object):
+    global file, time, debug7, results, file_sel_list, exportHyperlinks
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+
+    d = results[tuple(file_sel_list)][0]
+    pth = file_sel_list[0]
+    dry = os.path.split(pth)[0]
+    ##    try:
+    if True:
+        saveDocDict2Word(d, dry + pathsep + outfldr + pathsep + "Analysis_", timestr, file_sel_list, exportHyperlinks,
+                         debug7)
+        label.config(text="Saved as " + outfldr + os.path.sep + 'Analysis_' + timestr + 'DATA.docx')
 
 def ExporttoPDF(overlap, prioritydict, searchtextflag):
     global time, debug6, results, file_sel_list, outfldr
@@ -564,3 +757,39 @@ def analyse_file_webapp_shared_task(lst, overlap, filtername, prioritydict, task
             'DocDict': DocDict,
             'DocDictList': DocDictList,
             'textSentencesDict': textSentencesDict}
+
+
+
+def get_text_percentage(file_name: str) -> float:
+    """
+    Calculate the percentage of document that is covered by (searchable) text.
+
+    If the returned percentage of text is very low, the document is
+    most likely a non-searchable PDF
+    """
+    total_page_area = 0.0
+    total_text_area = 0.0
+
+    doc = fitz.open(file_name)
+
+    for page_num, page in enumerate(doc):
+        total_page_area = total_page_area + abs(page.rect)
+        text_area = 0.0
+        for b in page.getTextBlocks():
+            r = fitz.Rect(b[:4])  # rectangle where block text appears
+            text_area = text_area + abs(r)
+        total_text_area = total_text_area + text_area
+    doc.close()
+    return total_text_area / total_page_area
+
+
+def ocr_pdf_if_not_searchable(filepath):
+
+    filesProcessed = ""
+    x = 0
+    head, tail = os.path.split(filepath)
+    text_perc = get_text_percentage(filepath)
+    if text_perc < 0.01:
+        x +=1
+        result = ocrmypdf.ocr(filepath, filepath.split("/")[-1][:-4]+"_OCR.pdf", redo_ocr = True)
+        filesProcessed += tail

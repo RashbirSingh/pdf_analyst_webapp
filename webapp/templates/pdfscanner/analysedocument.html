@@ -99,14 +99,22 @@
 
              <a onmouseover="infoP('Delete the selected PDF')" onmouseout="HideinfoP()"
                 class = "zoom" href="{% url 'deletedocument' document.pk %}">&#10060;</a>
+
+            <a class = "zoom" href="ocrpdf?key={{ document.pk }}">
+              <img onmouseover="infoP('Download PDF pages as Image')" onmouseout="HideinfoP()"
+                   class = "zoom" src="/static/icons/ocr.png" style="width:24px;height:24px;">
+            </a>
+
             <a class = "zoom" href="downloadfilemeta?key={{ document.pk }}">
               <img onmouseover="infoP('Download PDF Metadata')" onmouseout="HideinfoP()"
                    class = "zoom" src="/static/icons/downloadfilemeta.png" style="width:24px;height:24px;">
             </a>
+
             <a onmouseover="infoP('Extract Images from PDF')" onmouseout="HideinfoP()"
                class = "zoom" href="extractimages?key={{ document.pk }}">
               <img class = "zoom" src="/static/icons/extractimages.png" style="width:24px;height:24px;">
             </a>
+
             <a class = "zoom" href="pdftoimage?key={{ document.pk }}">
               <img onmouseover="infoP('Download PDF pages as Image')" onmouseout="HideinfoP()"
                    class = "zoom" src="/static/icons/pdftoimage.png" style="width:24px;height:24px;">
